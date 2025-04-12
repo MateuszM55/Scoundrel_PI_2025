@@ -21,6 +21,24 @@ public class DeckManager : MonoBehaviour
         deck = deck.OrderBy(_ => rng.Next()).ToList();
     }
 
+    public int GetRemainingCardsCount()
+    {
+        return deck.Count;
+    }
+
+    public void DrawCards(int count)
+    {
+        if (deck.Count >= count)
+        {
+            deck.RemoveRange(0, count);
+        }
+        else
+        {
+            deck.Clear();
+        }
+
+    }
+
     private List<Card> GenerateDeck()
     {
         List<Card> newDeck = new List<Card>();

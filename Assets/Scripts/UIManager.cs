@@ -17,6 +17,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI weaponStrengthText;
     public TextMeshProUGUI lastSlainMonsterText;
     public TextMeshProUGUI highScoreText; // Reference to the UI text displaying the high score
+    public TextMeshProUGUI remainingCardsText; // Reference to the UI text displaying remaining cards
 
     // Add a reference for the info text
     public TextMeshProUGUI infoText;
@@ -68,10 +69,13 @@ public class UIManager : MonoBehaviour
     }
 
     // Method to shuffle the deck
-    private void ShuffleDeck()
+    public void ShuffleDeck()
     {
-        System.Random rng = new System.Random();
-        deckManager.deck = deckManager.deck.OrderBy(_ => rng.Next()).ToList();
+        deckManager.InitializeDeck();
+        InitializeCardButtons();
+
+        // Update the remaining cards text
+        UpdateStatsDisplay();
     }
 
     // Method to initialize card buttons with color and rank
@@ -107,6 +111,9 @@ public class UIManager : MonoBehaviour
                 cardButtons[i].gameObject.SetActive(false);
             }
         }
+
+        // Update the remaining cards text
+        UpdateStatsDisplay();
     }
 
     // Method to update the displayed stats
@@ -120,6 +127,7 @@ public class UIManager : MonoBehaviour
             ? $"Last Slain Monster: {gameManager.weapon.lastSlainMonster}"
             : "Last Slain Monster: None";
         highScoreText.text = $"High Score: {gameManager.highScore}"; // Display the high score
+        remainingCardsText.text = $"Remaining Cards: {deckManager.GetRemainingCardsCount()}"; // Display remaining cards
     }
 
     // Helper method to update the info text
@@ -173,7 +181,7 @@ public class UIManager : MonoBehaviour
                     break;
             }
 
-            // Update stats display
+            // Update stats display, including remaining cards
             UpdateStatsDisplay();
 
             // Check if card cycling is needed
@@ -203,8 +211,14 @@ public class UIManager : MonoBehaviour
 
             if (remainingButton != null)
             {
+                // Attempt to find the remaining card in the deck
                 int remainingCardRank = int.Parse(remainingButton.GetComponentInChildren<TextMeshProUGUI>().text);
                 remainingCard = deckManager.deck.FirstOrDefault(c => c.Rank == remainingCardRank);
+
+                if (remainingCard == null)
+                {
+                    Debug.LogWarning("Remaining card not found in the deck.");
+                }
             }
 
             // Shuffle the deck before drawing new cards
@@ -213,7 +227,7 @@ public class UIManager : MonoBehaviour
             // Draw new cards excluding the remaining card
             List<Card> newCards = deckManager.deck
                 .Where(c => remainingCard == null || c != remainingCard)
-                .Take(3)
+                .Take(cardButtons.Count - 1)
                 .ToList();
 
             // Update card buttons
@@ -221,7 +235,7 @@ public class UIManager : MonoBehaviour
             for (int i = 0; i < cardButtons.Count; i++)
             {
                 Button button = cardButtons[i];
-                if (button == remainingButton)
+                if (button == remainingButton && remainingCard != null)
                 {
                     // Keep the remaining card intact
                     button.gameObject.SetActive(true);
@@ -245,7 +259,6 @@ public class UIManager : MonoBehaviour
 
                     // Map the button to the new card
                     buttonCardMap[button] = card;
-
                 }
                 else
                 {
@@ -253,6 +266,9 @@ public class UIManager : MonoBehaviour
                     button.gameObject.SetActive(false);
                 }
             }
+
+            // Update the remaining cards text
+            UpdateStatsDisplay();
         }
     }
 
