@@ -19,6 +19,9 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        // Shuffle the deck before initializing buttons
+        ShuffleDeck();
+
         // Initialize UI with current values
         UpdateStatsDisplay();
 
@@ -26,10 +29,17 @@ public class UIManager : MonoBehaviour
         InitializeCardButtons();
     }
 
+    // Method to shuffle the deck
+    private void ShuffleDeck()
+    {
+        System.Random rng = new System.Random();
+        deckManager.deck = deckManager.deck.OrderBy(_ => rng.Next()).ToList();
+    }
+
     // Method to initialize card buttons with color and rank
     private void InitializeCardButtons()
     {
-        // Draw initial cards from the deck
+        // Draw initial cards from the shuffled deck
         List<Card> initialCards = deckManager.deck.Take(cardButtons.Count).ToList();
 
         for (int i = 0; i < cardButtons.Count; i++)
@@ -40,7 +50,7 @@ public class UIManager : MonoBehaviour
                 Card card = initialCards[i];
                 Button button = cardButtons[i];
                 button.gameObject.SetActive(true);
-                button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank instead of suit
+                button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank
                 button.GetComponent<Image>().color = GetCardColor(card.Type);
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnCardClicked(card));
@@ -65,11 +75,11 @@ public class UIManager : MonoBehaviour
             : "Last Slain Monster: None";
     }
 
-    // Modify OnCardClicked to update stats display
+    // Modify OnCardClicked to ensure the button disappears
     public void OnCardClicked(Card card)
     {
         // Find the button associated with the card and hide it
-        Button clickedButton = cardButtons.FirstOrDefault(button => button.GetComponentInChildren<TextMeshProUGUI>().text == card.Suit);
+        Button clickedButton = cardButtons.FirstOrDefault(button => button.GetComponentInChildren<TextMeshProUGUI>().text == card.Rank.ToString());
         if (clickedButton != null)
         {
             clickedButton.gameObject.SetActive(false);
@@ -108,15 +118,18 @@ public class UIManager : MonoBehaviour
         CycleCards();
     }
 
-    // Modify CycleCards to update button text with card ranks
+    // Modify CycleCards to shuffle and draw four random cards
     public void CycleCards()
     {
         // Check if only one card button is active
         int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
         if (activeButtons == 1)
         {
-            // Draw three new cards from the deck
-            List<Card> newCards = deckManager.deck.Take(3).ToList();
+            // Shuffle the deck before drawing new cards
+            ShuffleDeck();
+
+            // Draw four new cards from the shuffled deck
+            List<Card> newCards = deckManager.deck.Take(4).ToList();
 
             for (int i = 0; i < cardButtons.Count; i++)
             {
@@ -126,14 +139,14 @@ public class UIManager : MonoBehaviour
                     Card card = newCards[i];
                     Button button = cardButtons[i];
                     button.gameObject.SetActive(true);
-                    button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank instead of suit
+                    button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank
                     button.GetComponent<Image>().color = GetCardColor(card.Type);
                     button.onClick.RemoveAllListeners();
                     button.onClick.AddListener(() => OnCardClicked(card));
                 }
                 else
                 {
-                    // Hide extra buttons
+                    // Hide extra buttons if fewer than 4 cards are available
                     cardButtons[i].gameObject.SetActive(false);
                 }
             }
