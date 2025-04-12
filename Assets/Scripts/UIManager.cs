@@ -35,6 +35,16 @@ public class UIManager : MonoBehaviour
     // Add a dictionary to map buttons to their corresponding cards
     private Dictionary<Button, Card> buttonCardMap = new Dictionary<Button, Card>();
 
+    // Add references for the main menu and its elements
+    public GameObject mainMenu;
+    public Button continueButton;
+    public Button newGameButton;
+    public Button achievementsButton;
+    public Slider volumeSlider;
+
+    // Add a reference for the achievements menu
+    public GameObject achievementsMenu;
+
     private void Start()
     {
         // Shuffle the deck before initializing buttons
@@ -45,6 +55,9 @@ public class UIManager : MonoBehaviour
 
         // Initialize card buttons
         InitializeCardButtons();
+
+        // Initialize main menu buttons
+        InitializeMainMenu();
     }
 
     // Method to shuffle the deck
@@ -111,18 +124,12 @@ public class UIManager : MonoBehaviour
     // Modify OnCardClicked to enforce a health cap and initialize lastSlainMonster when equipping a weapon
     public void OnCardClicked(Button clickedButton)
     {
-        // Debugging log
-        Debug.Log($"Button clicked: {clickedButton.name}");
-
         // Ensure the clicked button exists in the map
         if (buttonCardMap.TryGetValue(clickedButton, out Card card))
         {
             // Hide the button and remove it from the map
             clickedButton.gameObject.SetActive(false);
             buttonCardMap.Remove(clickedButton);
-
-            // Debugging log
-            Debug.Log($"Button {clickedButton.name} removed. Card: {card.Rank} of type {card.Type}");
 
             // Handle card interaction
             switch (card.Type)
@@ -293,7 +300,17 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Modify TriggerFight to allow fighting any monster if lastSlainMonster is 0
+    // Method to disable all buttons
+    private void SetButtonsInteractable(bool interactable)
+    {
+        foreach (Button button in cardButtons)
+        {
+            button.interactable = interactable;
+        }
+        runButton.interactable = interactable;
+    }
+
+    // Modify TriggerFight to show the fight popup
     private void TriggerFight(Card monsterCard)
     {
         int monsterStrength = monsterCard.Rank;
@@ -304,21 +321,34 @@ public class UIManager : MonoBehaviour
             // Allow fighting any monster if lastSlainMonster is 0
             if (gameManager.weapon.lastSlainMonster == 0 || monsterStrength <= gameManager.weapon.lastSlainMonster)
             {
-                // Use weapon to fight
-                int damage = Mathf.Min(gameManager.weapon.strength, monsterStrength);
-                monsterStrength -= damage;
-                UpdateInfoText($"Used weapon! Monster strength reduced by {damage}. Remaining monster strength: {monsterStrength}");
-             
-                gameManager.healthPoints -= monsterStrength;
-                UpdateInfoText($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
-                gameManager.weapon.lastSlainMonster = monsterCard.Rank; // Update last slain monster
-                UpdateInfoText($"Monster slain! Last slain monster updated to {gameManager.weapon.lastSlainMonster}");
+                // Show the fight popup to choose between weapon and fists
+                ShowFightPopup(
+                    onWeaponSelected: () =>
+                    {
+                        int damage = Mathf.Min(gameManager.weapon.strength, monsterStrength);
+                        monsterStrength -= damage;
+                        UpdateInfoText($"Used weapon! Monster strength reduced by {damage}. Remaining monster strength: {monsterStrength}");
+
+                        gameManager.healthPoints -= monsterStrength;
+                        UpdateInfoText($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+                        gameManager.weapon.lastSlainMonster = monsterCard.Rank; // Update last slain monster
+                        UpdateInfoText($"Monster slain! Last slain monster updated to {gameManager.weapon.lastSlainMonster}");
+                        UpdateStatsDisplay();
+                    },
+                    onFistsSelected: () =>
+                    {
+                        gameManager.healthPoints -= monsterStrength;
+                        UpdateInfoText($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+                        UpdateStatsDisplay();
+                    }
+                );
             }
             else
             {
                 UpdateInfoText($"Monster is too strong! Cannot use weapon. Fighting with fists instead.");
                 gameManager.healthPoints -= monsterStrength;
                 UpdateInfoText($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+                UpdateStatsDisplay();
             }
         }
         else
@@ -326,15 +356,22 @@ public class UIManager : MonoBehaviour
             // No weapon equipped or weapon strength is zero, fight with fists
             gameManager.healthPoints -= monsterStrength;
             UpdateInfoText($"No weapon equipped or weapon strength is zero! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+            UpdateStatsDisplay();
         }
-
-        // Explicitly update stats display to reflect changes
-        UpdateStatsDisplay();
     }
 
-    // Modify ShowFightPopup to use editor-assigned buttons
+    // Modify ShowFightPopup to disable other buttons when the popup is shown
     private void ShowFightPopup(System.Action onWeaponSelected, System.Action onFistsSelected)
     {
+        if (fightPopup == null)
+        {
+            Debug.LogError("Fight popup is not assigned in the inspector.");
+            return;
+        }
+
+        // Disable all other buttons
+        SetButtonsInteractable(false);
+
         // Enable the fight popup GameObject
         fightPopup.SetActive(true);
 
@@ -344,6 +381,7 @@ public class UIManager : MonoBehaviour
         {
             onWeaponSelected?.Invoke();
             fightPopup.SetActive(false); // Disable the popup after selection
+            SetButtonsInteractable(true); // Re-enable all buttons
         });
 
         fistsButton.onClick.RemoveAllListeners();
@@ -351,6 +389,59 @@ public class UIManager : MonoBehaviour
         {
             onFistsSelected?.Invoke();
             fightPopup.SetActive(false); // Disable the popup after selection
+            SetButtonsInteractable(true); // Re-enable all buttons
         });
+    }
+
+    private void InitializeMainMenu()
+    {
+        // Assign button listeners
+        continueButton.onClick.AddListener(OnContinueClicked);
+        newGameButton.onClick.AddListener(OnNewGameClicked);
+        achievementsButton.onClick.AddListener(OnAchievementsClicked);
+
+        // Set initial volume slider value
+        volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+    }
+
+    public void ToggleMainMenu(bool isVisible)
+    {
+        mainMenu.SetActive(isVisible);
+    }
+
+    private void OnContinueClicked()
+    {
+        ToggleMainMenu(false); // Simply close the main menu
+    }
+
+    private void OnNewGameClicked()
+    {
+        ToggleMainMenu(false); // Close the main menu
+
+        // Reset the game state
+        gameManager.InitializeGame(); // Call a method to reset GameManager
+        deckManager.InitializeDeck(); // Call a method to reset DeckManager
+
+        // Reinitialize UI elements
+        InitializeCardButtons();
+        UpdateStatsDisplay();
+        UpdateInfoText("New game started!");
+    }
+
+    private void OnAchievementsClicked()
+    {
+        mainMenu.SetActive(false);
+        achievementsMenu.SetActive(true);
+    }
+
+    private void OnVolumeChanged(float value)
+    {
+        AudioListener.volume = value;
+    }
+
+    public void BackToMainMenu()
+    {
+        achievementsMenu.SetActive(false);
+        mainMenu.SetActive(true);
     }
 }

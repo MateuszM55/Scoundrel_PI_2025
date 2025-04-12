@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class DeckManager : MonoBehaviour
@@ -8,6 +9,16 @@ public class DeckManager : MonoBehaviour
     private void Awake()
     {
         deck = GenerateDeck();
+    }
+
+    public void InitializeDeck()
+    {
+        // Regenerate the deck
+        deck = GenerateDeck();
+
+        // Shuffle the deck
+        System.Random rng = new System.Random();
+        deck = deck.OrderBy(_ => rng.Next()).ToList();
     }
 
     private List<Card> GenerateDeck()

@@ -14,6 +14,15 @@ public class GameManager : MonoBehaviour
         healthPoints = 20; // Example default value
         weapon = new Weapon { strength = 0, lastSlainMonster = 0 }; // Example default weapon
     }
+
+    public void InitializeGame()
+    {
+        // Reset health points and weapon
+        healthPoints = 20;
+        weapon = null;
+
+        // Add any additional initialization logic here
+    }
 }
 
 // Weapon class to encapsulate weapon properties
