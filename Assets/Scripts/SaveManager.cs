@@ -29,4 +29,5 @@ public class GameState
 {
     public int healthPoints;
     public Weapon weapon;
+    public int highScore; // Add high score to the game state
 }

@@ -16,6 +16,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI weaponStrengthText;
     public TextMeshProUGUI lastSlainMonsterText;
+    public TextMeshProUGUI highScoreText; // Reference to the UI text displaying the high score
 
     // Add a reference for the info text
     public TextMeshProUGUI infoText;
@@ -118,6 +119,7 @@ public class UIManager : MonoBehaviour
         lastSlainMonsterText.text = gameManager.weapon != null
             ? $"Last Slain Monster: {gameManager.weapon.lastSlainMonster}"
             : "Last Slain Monster: None";
+        highScoreText.text = $"High Score: {gameManager.highScore}"; // Display the high score
     }
 
     // Helper method to update the info text
