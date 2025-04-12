@@ -73,7 +73,10 @@ public class UIManager : MonoBehaviour
                 button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank
                 button.GetComponent<Image>().color = GetCardColor(card.Type);
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => OnCardClicked(card));
+
+                // Use a local variable to correctly capture the card reference
+                Card capturedCard = card;
+                button.onClick.AddListener(() => OnCardClicked(button)); // Pass the button itself
 
                 // Map the button to the card
                 buttonCardMap[button] = card;
@@ -106,58 +109,70 @@ public class UIManager : MonoBehaviour
     }
 
     // Modify OnCardClicked to enforce a health cap and initialize lastSlainMonster when equipping a weapon
-    public void OnCardClicked(Card card)
+    public void OnCardClicked(Button clickedButton)
     {
-        // Find the button associated with the card and hide it
-        Button clickedButton = buttonCardMap.FirstOrDefault(pair => pair.Value == card).Key;
-        if (clickedButton != null)
+        // Debugging log
+        Debug.Log($"Button clicked: {clickedButton.name}");
+
+        // Ensure the clicked button exists in the map
+        if (buttonCardMap.TryGetValue(clickedButton, out Card card))
         {
+            // Hide the button and remove it from the map
             clickedButton.gameObject.SetActive(false);
-            buttonCardMap.Remove(clickedButton); // Remove the mapping for the hidden button
-        }
+            buttonCardMap.Remove(clickedButton);
 
-        // Handle card interaction
-        switch (card.Type)
+            // Debugging log
+            Debug.Log($"Button {clickedButton.name} removed. Card: {card.Rank} of type {card.Type}");
+
+            // Handle card interaction
+            switch (card.Type)
+            {
+                case CardType.HealingPotion:
+                    gameManager.healthPoints += card.Rank;
+                    if (gameManager.healthPoints > 20) // Enforce health cap
+                    {
+                        gameManager.healthPoints = 20;
+                        UpdateInfoText("Healed to full health.");
+                    }
+                    else
+                    {
+                        UpdateInfoText($"Healed for {card.Rank} HP. Current HP: {gameManager.healthPoints}");
+                    }
+                    break;
+
+                case CardType.Weapon:
+                    gameManager.weapon = new Weapon
+                    {
+                        strength = card.Rank,
+                        lastSlainMonster = 0
+                    };
+                    UpdateInfoText($"Equipped weapon with Strength: {card.Rank}, Last Slain Monster: {gameManager.weapon.lastSlainMonster}");
+                    break;
+
+                case CardType.Monster:
+                    TriggerFight(card);
+                    break;
+
+                default:
+                    UpdateInfoText("Unknown card type.");
+                    break;
+            }
+
+            // Update stats display
+            UpdateStatsDisplay();
+
+            // Check if card cycling is needed
+            CycleCards();
+
+            // Re-enable running
+            canRun = true;
+        }
+        else
         {
-            case CardType.HealingPotion:
-                gameManager.healthPoints += card.Rank;
-                if (gameManager.healthPoints > 20) // Enforce health cap
-                {
-                    gameManager.healthPoints = 20;
-                    UpdateInfoText("Healed to full health");
-                }
-                else
-                {
-                    UpdateInfoText($"Healed for {card.Rank} HP. Current HP: {gameManager.healthPoints}");
-                }
-                break;
-
-            case CardType.Weapon:
-                gameManager.weapon = new Weapon
-                {
-                    strength = card.Rank,
-                    lastSlainMonster = 0
-                };
-                UpdateInfoText($"Equipped weapon with Strength: {card.Rank}, Last Slain Monster: {gameManager.weapon.lastSlainMonster}");
-                break;
-
-            case CardType.Monster:
-                TriggerFight(card);
-                break;
-
-            default:
-                UpdateInfoText("Unknown card type.");
-                break;
+            // Debugging log
+            Debug.LogError($"Error: Clicked button {clickedButton.name} not found in the map.");
+            UpdateInfoText("Error: Clicked button not found in the map.");
         }
-
-        // Update stats display
-        UpdateStatsDisplay();
-
-        // Check if card cycling is needed
-        CycleCards();
-
-        // Re-enable running
-        canRun = true;
     }
 
     // Modify CycleCards to preserve the remaining card
@@ -198,7 +213,10 @@ public class UIManager : MonoBehaviour
                     button.GetComponentInChildren<TextMeshProUGUI>().text = remainingCard.Rank.ToString();
                     button.GetComponent<Image>().color = GetCardColor(remainingCard.Type);
                     button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => OnCardClicked(remainingCard));
+                    button.onClick.AddListener(() => OnCardClicked(button));
+
+                    // Debugging log
+                    Debug.Log($"Preserved button {button.name} with card {remainingCard.Rank} of type {remainingCard.Type}");
                 }
                 else if (newCardIndex < newCards.Count)
                 {
@@ -208,7 +226,13 @@ public class UIManager : MonoBehaviour
                     button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString();
                     button.GetComponent<Image>().color = GetCardColor(card.Type);
                     button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => OnCardClicked(card));
+                    button.onClick.AddListener(() => OnCardClicked(button));
+
+                    // Map the button to the new card
+                    buttonCardMap[button] = card;
+
+                    // Debugging log
+                    Debug.Log($"Updated button {button.name} with new card {card.Rank} of type {card.Type}");
                 }
                 else
                 {
