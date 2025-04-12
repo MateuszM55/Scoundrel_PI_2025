@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro; // Add this for TextMeshPro support
 
 public class UIManager : MonoBehaviour
 {
@@ -11,59 +12,64 @@ public class UIManager : MonoBehaviour
     // Add references to card buttons
     public List<Button> cardButtons;
 
-    // Method to handle card cycling
-    public void CycleCards()
-    {
-        // Check if only one card button is active
-        int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
-        if (activeButtons == 1)
-        {
-            // Draw three new cards from the deck
-            List<Card> newCards = deckManager.deck.Take(3).ToList();
+    // Replace Text with TextMeshProUGUI for displaying stats
+    public TextMeshProUGUI healthText;
+    public TextMeshProUGUI weaponStrengthText;
+    public TextMeshProUGUI lastSlainMonsterText;
 
-            for (int i = 0; i < cardButtons.Count; i++)
+    private void Start()
+    {
+        // Initialize UI with current values
+        UpdateStatsDisplay();
+
+        // Initialize card buttons
+        InitializeCardButtons();
+    }
+
+    // Method to initialize card buttons with color and rank
+    private void InitializeCardButtons()
+    {
+        // Draw initial cards from the deck
+        List<Card> initialCards = deckManager.deck.Take(cardButtons.Count).ToList();
+
+        for (int i = 0; i < cardButtons.Count; i++)
+        {
+            if (i < initialCards.Count)
             {
-                if (i < newCards.Count)
-                {
-                    // Update button with new card
-                    Card card = newCards[i];
-                    Button button = cardButtons[i];
-                    button.gameObject.SetActive(true);
-                    button.GetComponentInChildren<Text>().text = $"{card.Rank}";
-                    button.GetComponent<Image>().color = GetCardColor(card.Type);
-                    button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => OnCardClicked(card));
-                }
-                else
-                {
-                    // Hide extra buttons
-                    cardButtons[i].gameObject.SetActive(false);
-                }
+                // Assign card to button
+                Card card = initialCards[i];
+                Button button = cardButtons[i];
+                button.gameObject.SetActive(true);
+                button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank instead of suit
+                button.GetComponent<Image>().color = GetCardColor(card.Type);
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => OnCardClicked(card));
+            }
+            else
+            {
+                // Hide extra buttons
+                cardButtons[i].gameObject.SetActive(false);
             }
         }
     }
 
-    // Method to get color based on card type
-    private Color GetCardColor(CardType type)
+    // Method to update the displayed stats
+    private void UpdateStatsDisplay()
     {
-        switch (type)
-        {
-            case CardType.Monster:
-                return Color.black;
-            case CardType.HealingPotion:
-                return Color.red;
-            case CardType.Weapon:
-                return Color.gray;
-            default:
-                return Color.white;
-        }
+        healthText.text = $"HP: {gameManager.healthPoints}";
+        weaponStrengthText.text = gameManager.weapon != null
+            ? $"Weapon Strength: {gameManager.weapon.strength}"
+            : "Weapon Strength: None";
+        lastSlainMonsterText.text = gameManager.weapon != null
+            ? $"Last Slain Monster: {gameManager.weapon.lastSlainMonster}"
+            : "Last Slain Monster: None";
     }
 
-    // Modify OnCardClicked to handle button disappearance
+    // Modify OnCardClicked to update stats display
     public void OnCardClicked(Card card)
     {
         // Find the button associated with the card and hide it
-        Button clickedButton = cardButtons.FirstOrDefault(button => button.GetComponentInChildren<Text>().text == $"{card.Rank}");
+        Button clickedButton = cardButtons.FirstOrDefault(button => button.GetComponentInChildren<TextMeshProUGUI>().text == card.Suit);
         if (clickedButton != null)
         {
             clickedButton.gameObject.SetActive(false);
@@ -95,8 +101,59 @@ public class UIManager : MonoBehaviour
                 break;
         }
 
+        // Update stats display
+        UpdateStatsDisplay();
+
         // Check if card cycling is needed
         CycleCards();
+    }
+
+    // Modify CycleCards to update button text with card ranks
+    public void CycleCards()
+    {
+        // Check if only one card button is active
+        int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
+        if (activeButtons == 1)
+        {
+            // Draw three new cards from the deck
+            List<Card> newCards = deckManager.deck.Take(3).ToList();
+
+            for (int i = 0; i < cardButtons.Count; i++)
+            {
+                if (i < newCards.Count)
+                {
+                    // Update button with new card
+                    Card card = newCards[i];
+                    Button button = cardButtons[i];
+                    button.gameObject.SetActive(true);
+                    button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank instead of suit
+                    button.GetComponent<Image>().color = GetCardColor(card.Type);
+                    button.onClick.RemoveAllListeners();
+                    button.onClick.AddListener(() => OnCardClicked(card));
+                }
+                else
+                {
+                    // Hide extra buttons
+                    cardButtons[i].gameObject.SetActive(false);
+                }
+            }
+        }
+    }
+
+    // Method to get color based on card type
+    private Color GetCardColor(CardType type)
+    {
+        switch (type)
+        {
+            case CardType.Monster:
+                return Color.black;
+            case CardType.HealingPotion:
+                return Color.red;
+            case CardType.Weapon:
+                return Color.gray;
+            default:
+                return Color.white;
+        }
     }
 
     // Placeholder for fight logic

@@ -5,7 +5,7 @@ public class DeckManager : MonoBehaviour
 {
     public List<Card> deck;
 
-    private void Start()
+    private void Awake()
     {
         deck = GenerateDeck();
     }
