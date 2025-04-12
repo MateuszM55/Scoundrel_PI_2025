@@ -17,6 +17,9 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI weaponStrengthText;
     public TextMeshProUGUI lastSlainMonsterText;
 
+    // Add a reference for the info text
+    public TextMeshProUGUI infoText;
+
     private bool canRun = true; // Flag to track if running is allowed
 
     // Add a reference to the GameObject containing the fight popup buttons
@@ -28,6 +31,9 @@ public class UIManager : MonoBehaviour
 
     // Add a reference for the Run button
     public Button runButton;
+
+    // Add a dictionary to map buttons to their corresponding cards
+    private Dictionary<Button, Card> buttonCardMap = new Dictionary<Button, Card>();
 
     private void Start()
     {
@@ -54,6 +60,8 @@ public class UIManager : MonoBehaviour
         // Draw initial cards from the shuffled deck
         List<Card> initialCards = deckManager.deck.Take(cardButtons.Count).ToList();
 
+        buttonCardMap.Clear(); // Clear the map before populating it
+
         for (int i = 0; i < cardButtons.Count; i++)
         {
             if (i < initialCards.Count)
@@ -66,6 +74,9 @@ public class UIManager : MonoBehaviour
                 button.GetComponent<Image>().color = GetCardColor(card.Type);
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnCardClicked(card));
+
+                // Map the button to the card
+                buttonCardMap[button] = card;
             }
             else
             {
@@ -87,14 +98,22 @@ public class UIManager : MonoBehaviour
             : "Last Slain Monster: None";
     }
 
+    // Helper method to update the info text
+    private void UpdateInfoText(string message)
+    {
+        infoText.text = ""; // Clear the existing text
+        infoText.text += message + "\n"; // Append the new message
+    }
+
     // Modify OnCardClicked to enforce a health cap and initialize lastSlainMonster when equipping a weapon
     public void OnCardClicked(Card card)
     {
         // Find the button associated with the card and hide it
-        Button clickedButton = cardButtons.FirstOrDefault(button => button.GetComponentInChildren<TextMeshProUGUI>().text == card.Rank.ToString());
+        Button clickedButton = buttonCardMap.FirstOrDefault(pair => pair.Value == card).Key;
         if (clickedButton != null)
         {
             clickedButton.gameObject.SetActive(false);
+            buttonCardMap.Remove(clickedButton); // Remove the mapping for the hidden button
         }
 
         // Handle card interaction
@@ -105,8 +124,12 @@ public class UIManager : MonoBehaviour
                 if (gameManager.healthPoints > 20) // Enforce health cap
                 {
                     gameManager.healthPoints = 20;
+                    UpdateInfoText("Healed to full health");
                 }
-                Debug.Log($"Healed for {card.Rank} HP. Current HP: {gameManager.healthPoints}");
+                else
+                {
+                    UpdateInfoText($"Healed for {card.Rank} HP. Current HP: {gameManager.healthPoints}");
+                }
                 break;
 
             case CardType.Weapon:
@@ -115,7 +138,7 @@ public class UIManager : MonoBehaviour
                     strength = card.Rank,
                     lastSlainMonster = 0
                 };
-                Debug.Log($"Equipped weapon with Strength: {card.Rank}, Last Slain Monster: {gameManager.weapon.lastSlainMonster}");
+                UpdateInfoText($"Equipped weapon with Strength: {card.Rank}, Last Slain Monster: {gameManager.weapon.lastSlainMonster}");
                 break;
 
             case CardType.Monster:
@@ -123,7 +146,7 @@ public class UIManager : MonoBehaviour
                 break;
 
             default:
-                Debug.Log("Unknown card type.");
+                UpdateInfoText("Unknown card type.");
                 break;
         }
 
@@ -201,7 +224,7 @@ public class UIManager : MonoBehaviour
     {
         if (!canRun)
         {
-            Debug.Log("You cannot run twice in a row!");
+            UpdateInfoText("You cannot run twice in a row!");
             return;
         }
 
@@ -226,6 +249,8 @@ public class UIManager : MonoBehaviour
 
         // Disable running until another action is taken
         canRun = false;
+
+        UpdateInfoText("You ran away and drew new cards.");
     }
 
     // Method to get color based on card type
@@ -258,25 +283,25 @@ public class UIManager : MonoBehaviour
                 // Use weapon to fight
                 int damage = Mathf.Min(gameManager.weapon.strength, monsterStrength);
                 monsterStrength -= damage;
-                Debug.Log($"Used weapon! Monster strength reduced by {damage}. Remaining monster strength: {monsterStrength}");
+                UpdateInfoText($"Used weapon! Monster strength reduced by {damage}. Remaining monster strength: {monsterStrength}");
              
                 gameManager.healthPoints -= monsterStrength;
-                Debug.Log($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+                UpdateInfoText($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
                 gameManager.weapon.lastSlainMonster = monsterCard.Rank; // Update last slain monster
-                Debug.Log($"Monster slain! Last slain monster updated to {gameManager.weapon.lastSlainMonster}");
+                UpdateInfoText($"Monster slain! Last slain monster updated to {gameManager.weapon.lastSlainMonster}");
             }
             else
             {
-                Debug.Log($"Monster is too strong! Cannot use weapon. Fighting with fists instead.");
+                UpdateInfoText($"Monster is too strong! Cannot use weapon. Fighting with fists instead.");
                 gameManager.healthPoints -= monsterStrength;
-                Debug.Log($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+                UpdateInfoText($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
             }
         }
         else
         {
             // No weapon equipped or weapon strength is zero, fight with fists
             gameManager.healthPoints -= monsterStrength;
-            Debug.Log($"No weapon equipped or weapon strength is zero! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+            UpdateInfoText($"No weapon equipped or weapon strength is zero! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
         }
 
         // Explicitly update stats display to reflect changes
