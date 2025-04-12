@@ -487,4 +487,18 @@ public class UIManager : MonoBehaviour
         achievementsMenu.SetActive(false);
         mainMenu.SetActive(true);
     }
+
+    // Method to handle winning the game
+    public void WinGame()
+    {
+        // Placeholder for win logic
+        Debug.Log("WinGame method called.");
+    }
+
+    // Method to handle losing the game
+    public void LoseGame()
+    {
+        // Placeholder for lose logic
+        Debug.Log("LoseGame method called.");
+    }
 }
