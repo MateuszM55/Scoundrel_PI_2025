@@ -53,8 +53,17 @@ public class UIManager : MonoBehaviour
     // Add a reference for the game menu
     public GameObject gameMenu;
 
+    // Add a dropdown for difficulty selection
+    public TMP_Dropdown difficultyDropdown;
+
+    // Add a field to store the selected difficulty
+    private string selectedDifficulty = "Normal";
+
     private void Start()
     {
+        // Initialize difficulty dropdown
+        InitializeDifficultyDropdown();
+
         // Shuffle the deck before initializing buttons
         ShuffleDeck();
 
@@ -68,10 +77,36 @@ public class UIManager : MonoBehaviour
         InitializeMainMenu();
     }
 
-    // Method to shuffle the deck
+    // Method to initialize the difficulty dropdown
+    private void InitializeDifficultyDropdown()
+    {
+        if (difficultyDropdown != null)
+        {
+            difficultyDropdown.onValueChanged.AddListener(OnDifficultyChanged);
+            difficultyDropdown.options = new List<TMP_Dropdown.OptionData>
+            {
+                new TMP_Dropdown.OptionData("Easy"),
+                new TMP_Dropdown.OptionData("Normal"),
+                new TMP_Dropdown.OptionData("Hard")
+            };
+            difficultyDropdown.value = 1; // Default to "Normal"
+        }
+    }
+
+    // Method to handle difficulty changes
+    private void OnDifficultyChanged(int index)
+    {
+        selectedDifficulty = difficultyDropdown.options[index].text;
+        Debug.Log($"Difficulty changed to: {selectedDifficulty}");
+
+        // Reinitialize the deck with the selected difficulty
+        ShuffleDeck();
+    }
+
+    // Modify ShuffleDeck to pass the selected difficulty to DeckManager
     public void ShuffleDeck()
     {
-        deckManager.InitializeDeck();
+        deckManager.InitializeDeck(selectedDifficulty);
         InitializeCardButtons();
 
         // Update the remaining cards text

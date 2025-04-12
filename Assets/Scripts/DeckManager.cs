@@ -8,13 +8,13 @@ public class DeckManager : MonoBehaviour
 
     private void Awake()
     {
-        deck = GenerateDeck();
+        deck = GenerateDeck("Normal");
     }
 
-    public void InitializeDeck()
+    public void InitializeDeck(string difficulty = "Normal")
     {
-        // Regenerate the deck
-        deck = GenerateDeck();
+        // Regenerate the deck based on difficulty
+        deck = GenerateDeck(difficulty);
 
         // Shuffle the deck
         System.Random rng = new System.Random();
@@ -39,7 +39,7 @@ public class DeckManager : MonoBehaviour
 
     }
 
-    private List<Card> GenerateDeck()
+    private List<Card> GenerateDeck(string difficulty)
     {
         List<Card> newDeck = new List<Card>();
 
@@ -48,8 +48,11 @@ public class DeckManager : MonoBehaviour
         {
             foreach (string suit in suits)
             {
-                // Skip red face cards and red aces
-                if ((suit == "Diamonds" || suit == "Hearts") && (rank > 10 || rank == 14))
+                // Apply difficulty-specific filters
+                if (difficulty == "Easy" && suit == "Spades" && rank == 14) // Exclude black aces
+                    continue;
+
+                if (difficulty == "Hard" && suit == "Hearts" && rank == 10) // Exclude healing potions with value 10
                     continue;
 
                 CardType type = DetermineCardType(suit);
