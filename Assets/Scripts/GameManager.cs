@@ -23,11 +23,19 @@ public class GameManager : MonoBehaviour
 
         // Add any additional initialization logic here
     }
-}
 
-// Weapon class to encapsulate weapon properties
-public class Weapon
-{
-    public int strength;
-    public int lastSlainMonster = 0; // Replaced durability with lastSlainMonster
+    public GameState GetGameState()
+    {
+        return new GameState
+        {
+            healthPoints = healthPoints,
+            weapon = weapon != null ? new Weapon { strength = weapon.strength, lastSlainMonster = weapon.lastSlainMonster } : null
+        };
+    }
+
+    public void LoadGameState(GameState gameState)
+    {
+        healthPoints = gameState.healthPoints;
+        weapon = gameState.weapon != null ? new Weapon { strength = gameState.weapon.strength, lastSlainMonster = gameState.weapon.lastSlainMonster } : null;
+    }
 }

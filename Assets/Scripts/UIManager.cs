@@ -244,8 +244,6 @@ public class UIManager : MonoBehaviour
                     // Map the button to the new card
                     buttonCardMap[button] = card;
 
-                    // Debugging log
-                    Debug.Log($"Updated button {button.name} with new card {card.Rank} of type {card.Type}");
                 }
                 else
                 {
@@ -421,7 +419,15 @@ public class UIManager : MonoBehaviour
     private void OnContinueClicked()
     {
         ToggleMainMenu(false);
-        // Resume game logic here
+        GameState loadedState = SaveManager.LoadGame();
+        if (loadedState != null)
+        {
+            gameManager.LoadGameState(loadedState);
+        }
+        else
+        {
+            Debug.LogWarning("No saved game to continue.");
+        }
     }
 
     private void OnNewGameClicked()
@@ -453,6 +459,8 @@ public class UIManager : MonoBehaviour
     // Add a method to handle quitting the application
     private void OnQuitClicked()
     {
+        GameState currentState = gameManager.GetGameState();
+        SaveManager.SaveGame(currentState);
         Application.Quit();
     }
 
