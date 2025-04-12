@@ -59,6 +59,12 @@ public class UIManager : MonoBehaviour
     // Add a field to store the selected difficulty
     private string selectedDifficulty = "Normal";
 
+    // Add a reference to the AudioManager
+    public AudioManager audioManager;
+
+    // Add a reference for background music
+    public AudioClip backgroundMusic;
+
     private void Start()
     {
         // Initialize difficulty dropdown
@@ -75,6 +81,12 @@ public class UIManager : MonoBehaviour
 
         // Initialize main menu buttons
         InitializeMainMenu();
+
+        // Play background music
+        if (audioManager != null && backgroundMusic != null)
+        {
+            audioManager.PlayMusic(backgroundMusic);
+        }
     }
 
     // Method to initialize the difficulty dropdown
@@ -506,7 +518,11 @@ public class UIManager : MonoBehaviour
 
     private void OnVolumeChanged(float value)
     {
-        AudioListener.volume = value;
+        // Use AudioManager to adjust volume
+        if (audioManager != null)
+        {
+            audioManager.SetVolume(value);
+        }
     }
 
     // Add a method to handle quitting the application
