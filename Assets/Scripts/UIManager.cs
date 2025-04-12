@@ -77,7 +77,7 @@ public class UIManager : MonoBehaviour
             : "Last Slain Monster: None";
     }
 
-    // Modify OnCardClicked to ensure the button disappears and re-enable running after an action
+    // Modify OnCardClicked to enforce a health cap
     public void OnCardClicked(Card card)
     {
         // Find the button associated with the card and hide it
@@ -92,6 +92,10 @@ public class UIManager : MonoBehaviour
         {
             case CardType.HealingPotion:
                 gameManager.healthPoints += card.Rank;
+                if (gameManager.healthPoints > 20) // Enforce health cap
+                {
+                    gameManager.healthPoints = 20;
+                }
                 Debug.Log($"Healed for {card.Rank} HP. Current HP: {gameManager.healthPoints}");
                 break;
 
