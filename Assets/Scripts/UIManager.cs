@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro; // Add this for TextMeshPro support
 
+/// <summary>
+/// Manages the user interface elements and interactions in the game.
+/// </summary>
 public class UIManager : MonoBehaviour
 {
     public GameManager gameManager;
@@ -65,6 +68,9 @@ public class UIManager : MonoBehaviour
     // Add a reference for background music
     public AudioClip backgroundMusic;
 
+    /// <summary>
+    /// Initializes the UIManager at the start of the game.
+    /// </summary>
     private void Start()
     {
         // Initialize difficulty dropdown
@@ -89,7 +95,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Method to initialize the difficulty dropdown
+    /// <summary>
+    /// Initializes the difficulty dropdown with options and sets the default value.
+    /// </summary>
     private void InitializeDifficultyDropdown()
     {
         if (difficultyDropdown != null)
@@ -105,7 +113,10 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Method to handle difficulty changes
+    /// <summary>
+    /// Handles changes to the selected difficulty in the dropdown.
+    /// </summary>
+    /// <param name="index">The index of the selected difficulty.</param>
     private void OnDifficultyChanged(int index)
     {
         selectedDifficulty = difficultyDropdown.options[index].text;
@@ -115,7 +126,9 @@ public class UIManager : MonoBehaviour
         ShuffleDeck();
     }
 
-    // Modify ShuffleDeck to pass the selected difficulty to DeckManager
+    /// <summary>
+    /// Shuffles the deck and updates the card buttons.
+    /// </summary>
     public void ShuffleDeck()
     {
         deckManager.InitializeDeck(selectedDifficulty);
@@ -125,7 +138,9 @@ public class UIManager : MonoBehaviour
         UpdateStatsDisplay();
     }
 
-    // Method to initialize card buttons with color and rank
+    /// <summary>
+    /// Initializes the card buttons with the corresponding cards from the deck.
+    /// </summary>
     private void InitializeCardButtons()
     {
         // Draw initial cards from the shuffled deck
@@ -163,7 +178,9 @@ public class UIManager : MonoBehaviour
         UpdateStatsDisplay();
     }
 
-    // Method to update the displayed stats
+    /// <summary>
+    /// Updates the displayed stats on the UI.
+    /// </summary>
     private void UpdateStatsDisplay()
     {
         healthText.text = $"HP: {gameManager.healthPoints}";
@@ -177,14 +194,20 @@ public class UIManager : MonoBehaviour
         remainingCardsText.text = $"Remaining Cards: {deckManager.GetRemainingCardsCount()}"; // Display remaining cards
     }
 
-    // Helper method to update the info text
+    /// <summary>
+    /// Updates the info text with a new message.
+    /// </summary>
+    /// <param name="message">The message to display.</param>
     private void UpdateInfoText(string message)
     {
         infoText.text = ""; // Clear the existing text
         infoText.text += message + "\n"; // Append the new message
     }
 
-    // Modify OnCardClicked to enforce a health cap and initialize lastSlainMonster when equipping a weapon
+    /// <summary>
+    /// Handles the logic when a card button is clicked.
+    /// </summary>
+    /// <param name="clickedButton">The button that was clicked.</param>
     public void OnCardClicked(Button clickedButton)
     {
         // Ensure the clicked button exists in the map
@@ -245,7 +268,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Modify CycleCards to preserve the remaining card
+    /// <summary>
+    /// Cycles the cards, preserving the remaining card if applicable.
+    /// </summary>
     public void CycleCards()
     {
         // Check if only one card button is active
@@ -319,7 +344,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Method to handle running
+    /// <summary>
+    /// Handles the logic for running away and drawing new cards.
+    /// </summary>
     public void Run()
     {
         if (!canRun)
@@ -353,7 +380,11 @@ public class UIManager : MonoBehaviour
         UpdateInfoText("You ran away and drew new cards.");
     }
 
-    // Method to get color based on card type
+    /// <summary>
+    /// Gets the color associated with a specific card type.
+    /// </summary>
+    /// <param name="type">The type of the card.</param>
+    /// <returns>The color associated with the card type.</returns>
     private Color GetCardColor(CardType type)
     {
         switch (type)
@@ -369,7 +400,10 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Method to disable all buttons
+    /// <summary>
+    /// Sets the interactable state of all buttons.
+    /// </summary>
+    /// <param name="interactable">Whether the buttons should be interactable.</param>
     private void SetButtonsInteractable(bool interactable)
     {
         foreach (Button button in cardButtons)
@@ -379,7 +413,10 @@ public class UIManager : MonoBehaviour
         runButton.interactable = interactable;
     }
 
-    // Modify TriggerFight to show the fight popup
+    /// <summary>
+    /// Triggers a fight with a monster card.
+    /// </summary>
+    /// <param name="monsterCard">The monster card to fight.</param>
     private void TriggerFight(Card monsterCard)
     {
         int monsterStrength = monsterCard.Rank;
@@ -429,7 +466,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Modify ShowFightPopup to disable other buttons when the popup is shown
+    /// <summary>
+    /// Displays the fight popup and assigns actions to the buttons.
+    /// </summary>
+    /// <param name="onWeaponSelected">Action to perform when the weapon button is selected.</param>
+    /// <param name="onFistsSelected">Action to perform when the fists button is selected.</param>
     private void ShowFightPopup(System.Action onWeaponSelected, System.Action onFistsSelected)
     {
         if (fightPopup == null)
@@ -462,6 +503,9 @@ public class UIManager : MonoBehaviour
         });
     }
 
+    /// <summary>
+    /// Initializes the main menu and assigns button listeners.
+    /// </summary>
     private void InitializeMainMenu()
     {
         // Assign button listeners
@@ -476,11 +520,18 @@ public class UIManager : MonoBehaviour
         volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
     }
 
+    /// <summary>
+    /// Toggles the visibility of the main menu.
+    /// </summary>
+    /// <param name="isVisible">Whether the main menu should be visible.</param>
     public void ToggleMainMenu(bool isVisible)
     {
         mainMenu.SetActive(isVisible);
     }
 
+    /// <summary>
+    /// Handles the logic for continuing a saved game.
+    /// </summary>
     private void OnContinueClicked()
     {
         ToggleMainMenu(false);
@@ -495,6 +546,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the logic for starting a new game.
+    /// </summary>
     private void OnNewGameClicked()
     {
         ToggleMainMenu(false);
@@ -510,12 +564,19 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the logic for opening the achievements menu.
+    /// </summary>
     private void OnAchievementsClicked()
     {
         mainMenu.SetActive(false);
         achievementsMenu.SetActive(true);
     }
 
+    /// <summary>
+    /// Handles changes to the volume slider.
+    /// </summary>
+    /// <param name="value">The new volume value.</param>
     private void OnVolumeChanged(float value)
     {
         // Use AudioManager to adjust volume
@@ -525,7 +586,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Add a method to handle quitting the application
+    /// <summary>
+    /// Handles the logic for quitting the application.
+    /// </summary>
     private void OnQuitClicked()
     {
         GameState currentState = gameManager.GetGameState();
@@ -533,20 +596,27 @@ public class UIManager : MonoBehaviour
         Application.Quit();
     }
 
+    /// <summary>
+    /// Returns to the main menu from the achievements menu.
+    /// </summary>
     public void BackToMainMenu()
     {
         achievementsMenu.SetActive(false);
         mainMenu.SetActive(true);
     }
 
-    // Method to handle winning the game
+    /// <summary>
+    /// Handles the logic for winning the game.
+    /// </summary>
     public void WinGame()
     {
         // Placeholder for win logic
         Debug.Log("WinGame method called.");
     }
 
-    // Method to handle losing the game
+    /// <summary>
+    /// Handles the logic for losing the game.
+    /// </summary>
     public void LoseGame()
     {
         // Placeholder for lose logic

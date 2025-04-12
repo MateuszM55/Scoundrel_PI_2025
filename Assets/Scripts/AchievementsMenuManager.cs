@@ -2,14 +2,34 @@ using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
 
+/// <summary>
+/// Manages the achievements menu, including displaying and unlocking achievements.
+/// </summary>
 public class AchievementsMenuManager : MonoBehaviour
 {
+    /// <summary>
+    /// The GameObject representing the achievements menu.
+    /// </summary>
     public GameObject achievementsMenu;
+
+    /// <summary>
+    /// Reference to the UIManager for navigation back to the main menu.
+    /// </summary>
     public UIManager uiManager;
 
+    /// <summary>
+    /// List of unlocked achievements.
+    /// </summary>
     private List<string> achievements = new List<string>();
-    public TextMeshProUGUI achievementsText; // Reference to the UI text displaying achievements
 
+    /// <summary>
+    /// Reference to the UI text displaying the list of achievements.
+    /// </summary>
+    public TextMeshProUGUI achievementsText;
+
+    /// <summary>
+    /// Initializes the achievements menu and populates it with example achievements.
+    /// </summary>
     private void Start()
     {
         // Initialize achievements (example)
@@ -20,6 +40,9 @@ public class AchievementsMenuManager : MonoBehaviour
         UpdateAchievementsDisplay();
     }
 
+    /// <summary>
+    /// Updates the achievements display in the UI.
+    /// </summary>
     private void UpdateAchievementsDisplay()
     {
         achievementsText.text = "Achievements:\n";
@@ -29,6 +52,10 @@ public class AchievementsMenuManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Unlocks a new achievement and updates the display.
+    /// </summary>
+    /// <param name="achievement">The name of the achievement to unlock.</param>
     public void UnlockAchievement(string achievement)
     {
         if (!achievements.Contains(achievement))
@@ -38,6 +65,9 @@ public class AchievementsMenuManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Closes the achievements menu and navigates back to the main menu.
+    /// </summary>
     public void CloseAchievementsMenu()
     {
         achievementsMenu.SetActive(false);

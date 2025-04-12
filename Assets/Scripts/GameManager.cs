@@ -1,17 +1,28 @@
 using UnityEngine;
 
+/// <summary>
+/// Manages the core game logic, including player stats, weapon, and high score.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
-    // Field for health points
+    /// <summary>
+    /// The player's current health points.
+    /// </summary>
     public int healthPoints;
 
-    // Field for weapon
+    /// <summary>
+    /// The weapon currently equipped by the player.
+    /// </summary>
     public Weapon weapon;
 
-    // Field to track the highest score
+    /// <summary>
+    /// The highest score achieved by the player.
+    /// </summary>
     public int highScore;
 
-    // Initialize default values in Start or Awake
+    /// <summary>
+    /// Initializes default values for the game manager at the start of the game.
+    /// </summary>
     private void Start()
     {
         healthPoints = 20; // Example default value
@@ -19,6 +30,9 @@ public class GameManager : MonoBehaviour
         highScore = 0; // Initialize high score
     }
 
+    /// <summary>
+    /// Resets the game state to its initial values.
+    /// </summary>
     public void InitializeGame()
     {
         // Reset health points and weapon
@@ -29,6 +43,10 @@ public class GameManager : MonoBehaviour
         // Add any additional initialization logic here
     }
 
+    /// <summary>
+    /// Retrieves the current game state.
+    /// </summary>
+    /// <returns>A <see cref="GameState"/> object representing the current game state.</returns>
     public GameState GetGameState()
     {
         return new GameState
@@ -37,8 +55,12 @@ public class GameManager : MonoBehaviour
             weapon = weapon != null ? new Weapon { strength = weapon.strength, lastSlainMonster = weapon.lastSlainMonster } : null,
             highScore = highScore // Include high score in the game state
         };
-    }
+    }               
 
+    /// <summary>
+    /// Loads a saved game state into the game manager.
+    /// </summary>
+    /// <param name="gameState">The saved game state to load.</param>
     public void LoadGameState(GameState gameState)
     {
         healthPoints = gameState.healthPoints;
@@ -46,7 +68,10 @@ public class GameManager : MonoBehaviour
         highScore = gameState.highScore; // Restore high score
     }
 
-    // Method to update the high score
+    /// <summary>
+    /// Updates the high score if the new score is greater than the current high score.
+    /// </summary>
+    /// <param name="newScore">The new score to compare against the current high score.</param>
     public void UpdateHighScore(int newScore)
     {
         if (newScore > highScore)
