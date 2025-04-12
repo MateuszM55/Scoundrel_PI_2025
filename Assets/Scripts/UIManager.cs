@@ -137,36 +137,60 @@ public class UIManager : MonoBehaviour
         canRun = true;
     }
 
-    // Modify CycleCards to shuffle and draw four random cards
+    // Modify CycleCards to preserve the remaining card
     public void CycleCards()
     {
         // Check if only one card button is active
         int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
         if (activeButtons == 1)
         {
+            // Identify the remaining card
+            Button remainingButton = cardButtons.FirstOrDefault(button => button.gameObject.activeSelf);
+            Card remainingCard = null;
+
+            if (remainingButton != null)
+            {
+                int remainingCardRank = int.Parse(remainingButton.GetComponentInChildren<TextMeshProUGUI>().text);
+                remainingCard = deckManager.deck.FirstOrDefault(c => c.Rank == remainingCardRank);
+            }
+
             // Shuffle the deck before drawing new cards
             ShuffleDeck();
 
-            // Draw four new cards from the shuffled deck
-            List<Card> newCards = deckManager.deck.Take(4).ToList();
+            // Draw new cards excluding the remaining card
+            List<Card> newCards = deckManager.deck
+                .Where(c => remainingCard == null || c != remainingCard)
+                .Take(3)
+                .ToList();
 
+            // Update card buttons
+            int newCardIndex = 0;
             for (int i = 0; i < cardButtons.Count; i++)
             {
-                if (i < newCards.Count)
+                Button button = cardButtons[i];
+                if (button == remainingButton)
                 {
-                    // Update button with new card
-                    Card card = newCards[i];
-                    Button button = cardButtons[i];
+                    // Keep the remaining card intact
                     button.gameObject.SetActive(true);
-                    button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank
+                    button.GetComponentInChildren<TextMeshProUGUI>().text = remainingCard.Rank.ToString();
+                    button.GetComponent<Image>().color = GetCardColor(remainingCard.Type);
+                    button.onClick.RemoveAllListeners();
+                    button.onClick.AddListener(() => OnCardClicked(remainingCard));
+                }
+                else if (newCardIndex < newCards.Count)
+                {
+                    // Update button with a new card
+                    Card card = newCards[newCardIndex++];
+                    button.gameObject.SetActive(true);
+                    button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString();
                     button.GetComponent<Image>().color = GetCardColor(card.Type);
                     button.onClick.RemoveAllListeners();
                     button.onClick.AddListener(() => OnCardClicked(card));
                 }
                 else
                 {
-                    // Hide extra buttons if fewer than 4 cards are available
-                    cardButtons[i].gameObject.SetActive(false);
+                    // Hide extra buttons
+                    button.gameObject.SetActive(false);
                 }
             }
         }
