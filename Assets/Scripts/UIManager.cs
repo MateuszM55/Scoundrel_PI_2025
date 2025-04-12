@@ -48,6 +48,9 @@ public class UIManager : MonoBehaviour
     // Add a reference for the achievements menu
     public GameObject achievementsMenu;
 
+    // Add a reference for the game menu
+    public GameObject gameMenu;
+
     private void Start()
     {
         // Shuffle the deck before initializing buttons
@@ -402,16 +405,12 @@ public class UIManager : MonoBehaviour
         continueButton.onClick.AddListener(OnContinueClicked);
         newGameButton.onClick.AddListener(OnNewGameClicked);
         achievementsButton.onClick.AddListener(OnAchievementsClicked);
-        quitButton.onClick.AddListener(OnQuitClicked); // Add listener for Quit button
+
+        // Assign listener for the Quit button
+        quitButton.onClick.AddListener(OnQuitClicked);
 
         // Set initial volume slider value
         volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
-    }
-
-    public void OnQuitClicked()
-    {
-        Application.Quit(); // Exit the application
-        Debug.Log("Quit button clicked. Application is exiting."); // For debugging in the editor
     }
 
     public void ToggleMainMenu(bool isVisible)
@@ -419,26 +418,28 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(isVisible);
     }
 
-    public void OnContinueClicked()
+    private void OnContinueClicked()
     {
-        ToggleMainMenu(false); // Simply close the main menu
+        ToggleMainMenu(false);
+        // Resume game logic here
     }
 
-    public void OnNewGameClicked()
+    private void OnNewGameClicked()
     {
-        ToggleMainMenu(false); // Close the main menu
+        ToggleMainMenu(false);
 
-        // Reset the game state
-        gameManager.InitializeGame(); // Call a method to reset GameManager
-        deckManager.InitializeDeck(); // Call a method to reset DeckManager
-
-        // Reinitialize UI elements
-        InitializeCardButtons();
-        UpdateStatsDisplay();
-        UpdateInfoText("New game started!");
+        // Show the game menu
+        if (gameMenu != null)
+        {
+            gameMenu.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("Game menu GameObject is not assigned in the inspector.");
+        }
     }
 
-    public void OnAchievementsClicked()
+    private void OnAchievementsClicked()
     {
         mainMenu.SetActive(false);
         achievementsMenu.SetActive(true);
@@ -447,6 +448,12 @@ public class UIManager : MonoBehaviour
     private void OnVolumeChanged(float value)
     {
         AudioListener.volume = value;
+    }
+
+    // Add a method to handle quitting the application
+    private void OnQuitClicked()
+    {
+        Application.Quit();
     }
 
     public void BackToMainMenu()
