@@ -42,6 +42,9 @@ public class UIManager : MonoBehaviour
     public Button achievementsButton;
     public Slider volumeSlider;
 
+    // Add a reference for the Quit button
+    public Button quitButton;
+
     // Add a reference for the achievements menu
     public GameObject achievementsMenu;
 
@@ -399,9 +402,16 @@ public class UIManager : MonoBehaviour
         continueButton.onClick.AddListener(OnContinueClicked);
         newGameButton.onClick.AddListener(OnNewGameClicked);
         achievementsButton.onClick.AddListener(OnAchievementsClicked);
+        quitButton.onClick.AddListener(OnQuitClicked); // Add listener for Quit button
 
         // Set initial volume slider value
         volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+    }
+
+    public void OnQuitClicked()
+    {
+        Application.Quit(); // Exit the application
+        Debug.Log("Quit button clicked. Application is exiting."); // For debugging in the editor
     }
 
     public void ToggleMainMenu(bool isVisible)
@@ -409,12 +419,12 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(isVisible);
     }
 
-    private void OnContinueClicked()
+    public void OnContinueClicked()
     {
         ToggleMainMenu(false); // Simply close the main menu
     }
 
-    private void OnNewGameClicked()
+    public void OnNewGameClicked()
     {
         ToggleMainMenu(false); // Close the main menu
 
@@ -428,7 +438,7 @@ public class UIManager : MonoBehaviour
         UpdateInfoText("New game started!");
     }
 
-    private void OnAchievementsClicked()
+    public void OnAchievementsClicked()
     {
         mainMenu.SetActive(false);
         achievementsMenu.SetActive(true);
