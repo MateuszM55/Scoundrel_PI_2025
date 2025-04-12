@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         healthPoints = 20; // Example default value
-        weapon = new Weapon { strength = 10, lastSlainMonster = 0 }; // Example default weapon
+        weapon = new Weapon { strength = 0, lastSlainMonster = 0 }; // Example default weapon
     }
 }
 

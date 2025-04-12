@@ -17,6 +17,8 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI weaponStrengthText;
     public TextMeshProUGUI lastSlainMonsterText;
 
+    private bool canRun = true; // Flag to track if running is allowed
+
     private void Start()
     {
         // Shuffle the deck before initializing buttons
@@ -75,7 +77,7 @@ public class UIManager : MonoBehaviour
             : "Last Slain Monster: None";
     }
 
-    // Modify OnCardClicked to ensure the button disappears
+    // Modify OnCardClicked to ensure the button disappears and re-enable running after an action
     public void OnCardClicked(Card card)
     {
         // Find the button associated with the card and hide it
@@ -116,6 +118,9 @@ public class UIManager : MonoBehaviour
 
         // Check if card cycling is needed
         CycleCards();
+
+        // Re-enable running
+        canRun = true;
     }
 
     // Modify CycleCards to shuffle and draw four random cards
@@ -151,6 +156,38 @@ public class UIManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Method to handle running
+    public void Run()
+    {
+        if (!canRun)
+        {
+            Debug.Log("You cannot run twice in a row!");
+            return;
+        }
+
+        // Move all current cards to the bottom of the deck
+        foreach (Button button in cardButtons)
+        {
+            if (button.gameObject.activeSelf)
+            {
+                int cardRank = int.Parse(button.GetComponentInChildren<TextMeshProUGUI>().text);
+                Card card = deckManager.deck.FirstOrDefault(c => c.Rank == cardRank);
+                if (card != null)
+                {
+                    deckManager.deck.Remove(card);
+                    deckManager.deck.Add(card); // Add to the bottom of the deck
+                }
+            }
+        }
+
+        // Shuffle the deck and draw a new set of cards
+        ShuffleDeck();
+        InitializeCardButtons();
+
+        // Disable running until another action is taken
+        canRun = false;
     }
 
     // Method to get color based on card type
