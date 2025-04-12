@@ -87,7 +87,7 @@ public class UIManager : MonoBehaviour
             : "Last Slain Monster: None";
     }
 
-    // Modify OnCardClicked to enforce a health cap
+    // Modify OnCardClicked to enforce a health cap and initialize lastSlainMonster when equipping a weapon
     public void OnCardClicked(Card card)
     {
         // Find the button associated with the card and hide it
@@ -244,7 +244,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Modify TriggerFight to handle the described behavior
+    // Modify TriggerFight to allow fighting any monster if lastSlainMonster is 0
     private void TriggerFight(Card monsterCard)
     {
         int monsterStrength = monsterCard.Rank;
@@ -252,64 +252,35 @@ public class UIManager : MonoBehaviour
         // Check if the player has a weapon with non-zero strength
         if (gameManager.weapon != null && gameManager.weapon.strength > 0)
         {
-            // Disable card buttons and the Run button
-            foreach (var button in cardButtons)
+            // Allow fighting any monster if lastSlainMonster is 0
+            if (gameManager.weapon.lastSlainMonster == 0 || monsterStrength <= gameManager.weapon.lastSlainMonster)
             {
-                button.interactable = false;
+                // Use weapon to fight
+                int damage = Mathf.Min(gameManager.weapon.strength, monsterStrength);
+                monsterStrength -= damage;
+                Debug.Log($"Used weapon! Monster strength reduced by {damage}. Remaining monster strength: {monsterStrength}");
+             
+                gameManager.healthPoints -= monsterStrength;
+                Debug.Log($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+                gameManager.weapon.lastSlainMonster = monsterCard.Rank; // Update last slain monster
+                Debug.Log($"Monster slain! Last slain monster updated to {gameManager.weapon.lastSlainMonster}");
             }
-            runButton.interactable = false;
-
-            // Show the fight popup
-            ShowFightPopup(
-                onWeaponSelected: () =>
-                {
-                    // Use weapon to fight
-                    int damage = Mathf.Min(gameManager.weapon.strength, monsterStrength);
-                    monsterStrength -= damage;
-                    Debug.Log($"Used weapon! Monster strength reduced by {damage}. Remaining monster strength: {monsterStrength}");
-                    if (monsterStrength > 0)
-                    {
-                        gameManager.healthPoints -= monsterStrength;
-                        Debug.Log($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
-                    }
-
-                    // Re-enable card buttons and the Run button
-                    foreach (var button in cardButtons)
-                    {
-                        button.interactable = true;
-                    }
-                    runButton.interactable = true;
-
-                    // Update stats display
-                    UpdateStatsDisplay();
-                },
-                onFistsSelected: () =>
-                {
-                    // Fight with fists
-                    gameManager.healthPoints -= monsterStrength;
-                    Debug.Log($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
-
-                    // Re-enable card buttons and the Run button
-                    foreach (var button in cardButtons)
-                    {
-                        button.interactable = true;
-                    }
-                    runButton.interactable = true;
-
-                    // Update stats display
-                    UpdateStatsDisplay();
-                }
-            );
+            else
+            {
+                Debug.Log($"Monster is too strong! Cannot use weapon. Fighting with fists instead.");
+                gameManager.healthPoints -= monsterStrength;
+                Debug.Log($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+            }
         }
         else
         {
             // No weapon equipped or weapon strength is zero, fight with fists
             gameManager.healthPoints -= monsterStrength;
             Debug.Log($"No weapon equipped or weapon strength is zero! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
-
-            // Update stats display
-            UpdateStatsDisplay();
         }
+
+        // Explicitly update stats display to reflect changes
+        UpdateStatsDisplay();
     }
 
     // Modify ShowFightPopup to use editor-assigned buttons
