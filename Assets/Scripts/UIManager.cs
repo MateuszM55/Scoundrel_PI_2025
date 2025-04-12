@@ -19,6 +19,16 @@ public class UIManager : MonoBehaviour
 
     private bool canRun = true; // Flag to track if running is allowed
 
+    // Add a reference to the GameObject containing the fight popup buttons
+    public GameObject fightPopup;
+
+    // Add references for weapon and fists buttons
+    public Button weaponButton;
+    public Button fistsButton;
+
+    // Add a reference for the Run button
+    public Button runButton;
+
     private void Start()
     {
         // Shuffle the deck before initializing buttons
@@ -210,14 +220,22 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Placeholder for fight logic
+    // Modify TriggerFight to handle the described behavior
     private void TriggerFight(Card monsterCard)
     {
         int monsterStrength = monsterCard.Rank;
 
-        if (gameManager.weapon != null)
+        // Check if the player has a weapon with non-zero strength
+        if (gameManager.weapon != null && gameManager.weapon.strength > 0)
         {
-            // Show pop-up with two buttons: 'Weapon' and 'Fists'
+            // Disable card buttons and the Run button
+            foreach (var button in cardButtons)
+            {
+                button.interactable = false;
+            }
+            runButton.interactable = false;
+
+            // Show the fight popup
             ShowFightPopup(
                 onWeaponSelected: () =>
                 {
@@ -230,38 +248,65 @@ public class UIManager : MonoBehaviour
                         gameManager.healthPoints -= monsterStrength;
                         Debug.Log($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
                     }
+
+                    // Re-enable card buttons and the Run button
+                    foreach (var button in cardButtons)
+                    {
+                        button.interactable = true;
+                    }
+                    runButton.interactable = true;
+
+                    // Update stats display
+                    UpdateStatsDisplay();
                 },
                 onFistsSelected: () =>
                 {
                     // Fight with fists
                     gameManager.healthPoints -= monsterStrength;
                     Debug.Log($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+
+                    // Re-enable card buttons and the Run button
+                    foreach (var button in cardButtons)
+                    {
+                        button.interactable = true;
+                    }
+                    runButton.interactable = true;
+
+                    // Update stats display
+                    UpdateStatsDisplay();
                 }
             );
         }
         else
         {
-            // No weapon equipped, fight with fists
+            // No weapon equipped or weapon strength is zero, fight with fists
             gameManager.healthPoints -= monsterStrength;
-            Debug.Log($"No weapon equipped! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+            Debug.Log($"No weapon equipped or weapon strength is zero! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+
+            // Update stats display
+            UpdateStatsDisplay();
         }
     }
 
+    // Modify ShowFightPopup to use editor-assigned buttons
     private void ShowFightPopup(System.Action onWeaponSelected, System.Action onFistsSelected)
     {
-        // Placeholder for pop-up UI logic
-        Debug.Log("Displaying fight pop-up with options: Weapon or Fists.");
+        // Enable the fight popup GameObject
+        fightPopup.SetActive(true);
 
-        // Simulate button clicks for demonstration purposes
-        // Replace this with actual UI button logic
-        bool weaponButtonClicked = true; // Simulate weapon button click
-        if (weaponButtonClicked)
+        // Assign actions to the buttons
+        weaponButton.onClick.RemoveAllListeners();
+        weaponButton.onClick.AddListener(() =>
         {
             onWeaponSelected?.Invoke();
-        }
-        else
+            fightPopup.SetActive(false); // Disable the popup after selection
+        });
+
+        fistsButton.onClick.RemoveAllListeners();
+        fistsButton.onClick.AddListener(() =>
         {
             onFistsSelected?.Invoke();
-        }
+            fightPopup.SetActive(false); // Disable the popup after selection
+        });
     }
 }
