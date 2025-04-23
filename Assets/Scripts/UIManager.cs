@@ -68,6 +68,13 @@ public class UIManager : MonoBehaviour
     // Add a reference for background music
     public AudioClip backgroundMusic;
 
+    // Add a reference for the weapon image UI element
+    public Image weaponImage;
+
+    // Add private fields to track the game over and win screens
+    private GameObject gameOverScreen;
+    private GameObject winScreen;
+
     /// <summary>
     /// Initializes the UIManager at the start of the game.
     /// </summary>
@@ -192,6 +199,15 @@ public class UIManager : MonoBehaviour
             : "Last Slain Monster: None";
         highScoreText.text = $"High Score: {gameManager.highScore}"; // Display the high score
         remainingCardsText.text = $"Remaining Cards: {deckManager.GetRemainingCardsCount()}"; // Display remaining cards
+
+        // Check if health is 0 and trigger game over
+        if (gameManager.healthPoints <= 0)
+        {
+            HandleGameOver();
+        }
+
+        // Check if the player has won
+        CheckWinCondition();
     }
 
     /// <summary>
@@ -240,6 +256,9 @@ public class UIManager : MonoBehaviour
                         lastSlainMonster = 0
                     };
                     UpdateInfoText($"Equipped weapon with Strength: {card.Rank}, Last Slain Monster: {gameManager.weapon.lastSlainMonster}");
+
+                    // Update the weapon image
+                    UpdateWeaponImage(card);
                     break;
 
                 case CardType.Monster:
@@ -283,13 +302,14 @@ public class UIManager : MonoBehaviour
 
             if (remainingButton != null)
             {
-                // Attempt to find the remaining card in the deck
-                int remainingCardRank = int.Parse(remainingButton.GetComponentInChildren<TextMeshProUGUI>().text);
-                remainingCard = deckManager.deck.FirstOrDefault(c => c.Rank == remainingCardRank);
-
-                if (remainingCard == null)
+                // Attempt to find the remaining card in the map instead of re-parsing
+                if (buttonCardMap.TryGetValue(remainingButton, out remainingCard))
                 {
-                    Debug.LogWarning("Remaining card not found in the deck.");
+                    Debug.Log($"Preserving card: Rank {remainingCard.Rank}, Type {remainingCard.Type}");
+                }
+                else
+                {
+                    Debug.LogWarning("Remaining card not found in the button-card map.");
                 }
             }
 
@@ -316,8 +336,8 @@ public class UIManager : MonoBehaviour
                     button.onClick.RemoveAllListeners();
                     button.onClick.AddListener(() => OnCardClicked(button));
 
-                    // Debugging log
-                    Debug.Log($"Preserved button {button.name} with card {remainingCard.Rank} of type {remainingCard.Type}");
+                    // Ensure the preserved card remains mapped correctly
+                    buttonCardMap[button] = remainingCard;
                 }
                 else if (newCardIndex < newCards.Count)
                 {
@@ -621,5 +641,192 @@ public class UIManager : MonoBehaviour
     {
         // Placeholder for lose logic
         Debug.Log("LoseGame method called.");
+    }
+
+    /// <summary>
+    /// Updates the weapon image based on the equipped weapon card.
+    /// </summary>
+    /// <param name="weaponCard">The weapon card to display.</param>
+    private void UpdateWeaponImage(Card weaponCard)
+    {
+        if (weaponImage != null)
+        {
+            // Assuming weaponCard.Suit or weaponCard.Rank determines the image
+            Sprite weaponSprite = GetWeaponSprite(weaponCard);
+            if (weaponSprite != null)
+            {
+                weaponImage.sprite = weaponSprite;
+                weaponImage.enabled = true; // Ensure the image is visible
+            }
+        }
+    }
+
+    /// <summary>
+    /// Retrieves the appropriate weapon sprite based on the weapon card.
+    /// </summary>
+    /// <param name="weaponCard">The weapon card to get the sprite for.</param>
+    /// <returns>The sprite associated with the weapon card.</returns>
+    private Sprite GetWeaponSprite(Card weaponCard)
+    {
+        // Replace this with your logic to fetch the correct sprite based on the weapon card
+        // For example, you might use a dictionary or a switch statement
+        return null; // Placeholder
+    }
+
+    /// <summary>
+    /// Handles the game over state.
+    /// </summary>
+    public void HandleGameOver()
+    {
+        // Check if the game over screen already exists
+        if (gameOverScreen != null)
+        {
+            return; // Prevent multiple instances
+        }
+
+        // Hide the game UI
+        gameMenu.SetActive(false);
+
+        // Dynamically create the game over screen
+        gameOverScreen = new GameObject("GameOverScreen");
+        Canvas canvas = gameOverScreen.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        gameOverScreen.AddComponent<CanvasScaler>();
+        gameOverScreen.AddComponent<GraphicRaycaster>();
+
+        // Add a background panel
+        GameObject panel = new GameObject("Panel");
+        panel.transform.SetParent(gameOverScreen.transform);
+        RectTransform panelRect = panel.AddComponent<RectTransform>();
+        panelRect.sizeDelta = new Vector2(400, 200);
+        panelRect.anchoredPosition = Vector2.zero;
+        Image panelImage = panel.AddComponent<Image>();
+        panelImage.color = new Color(0, 0, 0, 0.8f); // Semi-transparent black
+
+        // Add "Game Over" text
+        GameObject gameOverText = new GameObject("GameOverText");
+        gameOverText.transform.SetParent(panel.transform);
+        TextMeshProUGUI text = gameOverText.AddComponent<TextMeshProUGUI>();
+        text.text = "Game Over";
+        text.fontSize = 36;
+        text.alignment = TextAlignmentOptions.Center;
+        RectTransform textRect = gameOverText.GetComponent<RectTransform>();
+        textRect.sizeDelta = new Vector2(300, 50);
+        textRect.anchoredPosition = new Vector2(0, 50);
+
+        // Add "Back to Menu" button
+        GameObject backButton = new GameObject("BackToMenuButton");
+        backButton.transform.SetParent(panel.transform);
+        Button button = backButton.AddComponent<Button>();
+        Image buttonImage = backButton.AddComponent<Image>();
+        buttonImage.color = Color.white; // Button background color
+        RectTransform buttonRect = backButton.GetComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(200, 50);
+        buttonRect.anchoredPosition = new Vector2(0, -50);
+
+        // Add button text dynamically
+        GameObject buttonText = new GameObject("ButtonText");
+        buttonText.transform.SetParent(backButton.transform);
+        TextMeshProUGUI buttonTextComponent = buttonText.AddComponent<TextMeshProUGUI>();
+        buttonTextComponent.text = "Back to Menu";
+        buttonTextComponent.fontSize = 24;
+        buttonTextComponent.alignment = TextAlignmentOptions.Center;
+        buttonTextComponent.color = Color.black; // Set the text color to black
+        RectTransform buttonTextRect = buttonText.GetComponent<RectTransform>();
+        buttonTextRect.sizeDelta = new Vector2(200, 50);
+        buttonTextRect.anchoredPosition = Vector2.zero;
+
+        // Add button functionality to hide the game over screen and show the main menu
+        button.onClick.AddListener(() =>
+        {
+            Destroy(gameOverScreen); // Remove the game over screen
+            gameOverScreen = null; // Reset the reference
+            ToggleMainMenu(true); // Show the main menu
+        });
+    }
+
+    /// <summary>
+    /// Checks if the player has won the game.
+    /// </summary>
+    private void CheckWinCondition()
+    {
+        // Check if all monsters have been selected and the player has positive health
+        bool allMonstersSelected = !deckManager.deck.Any(card => card.Type == CardType.Monster);
+        if (allMonstersSelected && gameManager.healthPoints > 0)
+        {
+            HandleWin();
+        }
+    }
+
+    /// <summary>
+    /// Handles the win state.
+    /// </summary>
+    private void HandleWin()
+    {
+        // Check if the win screen already exists
+        if (winScreen != null)
+        {
+            return; // Prevent multiple instances
+        }
+
+        // Hide the game UI
+        gameMenu.SetActive(false);
+
+        // Dynamically create the win screen
+        winScreen = new GameObject("WinScreen");
+        Canvas canvas = winScreen.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        winScreen.AddComponent<CanvasScaler>();
+        winScreen.AddComponent<GraphicRaycaster>();
+
+        // Add a background panel
+        GameObject panel = new GameObject("Panel");
+        panel.transform.SetParent(winScreen.transform);
+        RectTransform panelRect = panel.AddComponent<RectTransform>();
+        panelRect.sizeDelta = new Vector2(400, 200);
+        panelRect.anchoredPosition = Vector2.zero;
+        Image panelImage = panel.AddComponent<Image>();
+        panelImage.color = new Color(0, 0, 0, 0.8f); // Semi-transparent black
+
+        // Add "You Win" text
+        GameObject winText = new GameObject("WinText");
+        winText.transform.SetParent(panel.transform);
+        TextMeshProUGUI text = winText.AddComponent<TextMeshProUGUI>();
+        text.text = "You Win!";
+        text.fontSize = 36;
+        text.alignment = TextAlignmentOptions.Center;
+        RectTransform textRect = winText.GetComponent<RectTransform>();
+        textRect.sizeDelta = new Vector2(300, 50);
+        textRect.anchoredPosition = new Vector2(0, 50);
+
+        // Add "Back to Menu" button
+        GameObject backButton = new GameObject("BackToMenuButton");
+        backButton.transform.SetParent(panel.transform);
+        Button button = backButton.AddComponent<Button>();
+        Image buttonImage = backButton.AddComponent<Image>();
+        buttonImage.color = Color.white; // Button background color
+        RectTransform buttonRect = backButton.GetComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(200, 50);
+        buttonRect.anchoredPosition = new Vector2(0, -50);
+
+        // Add button text dynamically
+        GameObject buttonText = new GameObject("ButtonText");
+        buttonText.transform.SetParent(backButton.transform);
+        TextMeshProUGUI buttonTextComponent = buttonText.AddComponent<TextMeshProUGUI>();
+        buttonTextComponent.text = "Back to Menu";
+        buttonTextComponent.fontSize = 24;
+        buttonTextComponent.alignment = TextAlignmentOptions.Center;
+        buttonTextComponent.color = Color.black;
+        RectTransform buttonTextRect = buttonText.GetComponent<RectTransform>();
+        buttonTextRect.sizeDelta = new Vector2(200, 50);
+        buttonTextRect.anchoredPosition = Vector2.zero;
+
+        // Add button functionality to hide the win screen and show the main menu
+        button.onClick.AddListener(() =>
+        {
+            Destroy(winScreen); // Remove the win screen
+            winScreen = null; // Reset the reference
+            ToggleMainMenu(true); // Show the main menu
+        });
     }
 }

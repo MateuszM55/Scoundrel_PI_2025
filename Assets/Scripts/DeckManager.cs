@@ -85,7 +85,8 @@ public class DeckManager : MonoBehaviour
             }
         }
 
-        return newDeck;
+        // Ensure no duplicate cards and consistent properties
+        return newDeck.Distinct().ToList();
     }
 
     /// <summary>
