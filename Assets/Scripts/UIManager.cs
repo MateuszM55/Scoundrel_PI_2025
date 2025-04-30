@@ -97,6 +97,20 @@ public class UIManager : MonoBehaviour
         {
             audioManager.PlayMusic(backgroundMusic);
         }
+
+        // Update the remaining cards text at the start
+        UpdateRemainingCardsText();
+    }
+
+    /// <summary>
+    /// Updates the remaining cards text in the UI.
+    /// </summary>
+    private void UpdateRemainingCardsText()
+    {
+        if (remainingCardsText != null && deckManager != null)
+        {
+            remainingCardsText.text = $"Remaining Cards: {deckManager.GetRemainingCardsCount()}";
+        }
     }
 
     /// <summary>
@@ -180,7 +194,6 @@ public class UIManager : MonoBehaviour
             ? $"Last Slain Monster: {gameManager.weapon.lastSlainMonster}"
             : "Last Slain Monster: None";
         highScoreText.text = $"High Score: {gameManager.highScore}"; // Display the high score
-        remainingCardsText.text = $"Remaining Cards: {deckManager.GetRemainingCardsCount()}"; // Display remaining cards
 
         // Check if health is 0 and trigger game over
         if (gameManager.healthPoints <= 0)
@@ -281,6 +294,7 @@ public class UIManager : MonoBehaviour
         int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
         if (activeButtons == 1)
         {
+            UpdateRemainingCardsText(); // Display remaining cards
             // Identify the remaining card
             Button remainingButton = cardButtons.FirstOrDefault(button => button.gameObject.activeSelf);
             Card remainingCard = null;
