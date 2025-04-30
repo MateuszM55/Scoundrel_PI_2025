@@ -83,9 +83,6 @@ public class UIManager : MonoBehaviour
         // Initialize difficulty dropdown
         InitializeDifficultyDropdown();
 
-        // Shuffle the deck before initializing buttons
-        ShuffleDeck();
-
         // Initialize UI with current values
         UpdateStatsDisplay();
 
@@ -128,21 +125,6 @@ public class UIManager : MonoBehaviour
     {
         selectedDifficulty = difficultyDropdown.options[index].text;
         Debug.Log($"Difficulty changed to: {selectedDifficulty}");
-
-        // Reinitialize the deck with the selected difficulty
-        ShuffleDeck();
-    }
-
-    /// <summary>
-    /// Shuffles the deck and updates the card buttons.
-    /// </summary>
-    public void ShuffleDeck()
-    {
-        deckManager.InitializeDeck(selectedDifficulty);
-        InitializeCardButtons();
-
-        // Update the remaining cards text
-        UpdateStatsDisplay();
     }
 
     /// <summary>
@@ -229,6 +211,9 @@ public class UIManager : MonoBehaviour
         // Ensure the clicked button exists in the map
         if (buttonCardMap.TryGetValue(clickedButton, out Card card))
         {
+            // Remove the card from the deck
+            deckManager.RemoveCardFromDeck(card);
+
             // Hide the button and remove it from the map
             clickedButton.gameObject.SetActive(false);
             buttonCardMap.Remove(clickedButton);
@@ -313,9 +298,6 @@ public class UIManager : MonoBehaviour
                 }
             }
 
-            // Shuffle the deck before drawing new cards
-            ShuffleDeck();
-
             // Draw new cards excluding the remaining card
             List<Card> newCards = deckManager.deck
                 .Where(c => remainingCard == null || c != remainingCard)
@@ -390,8 +372,6 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        // Shuffle the deck and draw a new set of cards
-        ShuffleDeck();
         InitializeCardButtons();
 
         // Disable running until another action is taken

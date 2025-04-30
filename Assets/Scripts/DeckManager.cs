@@ -18,6 +18,12 @@ public class DeckManager : MonoBehaviour
     private void Awake()
     {
         deck = GenerateDeck("Normal");
+
+        // Shuffle the deck after generation
+        ShuffleDeck();
+
+        // Debug: Print the entire deck
+        PrintDeck();
     }
 
     /// <summary>
@@ -30,6 +36,17 @@ public class DeckManager : MonoBehaviour
         deck = GenerateDeck(difficulty);
 
         // Shuffle the deck
+        ShuffleDeck();
+
+        // Debug: Print the entire deck
+        PrintDeck();
+    }
+
+    /// <summary>
+    /// Shuffles the current deck.
+    /// </summary>
+    private void ShuffleDeck()
+    {
         System.Random rng = new System.Random();
         deck = deck.OrderBy(_ => rng.Next()).ToList();
     }
@@ -44,18 +61,19 @@ public class DeckManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Draws a specified number of cards from the top of the deck.
+    /// Removes a specific card from the deck.
     /// </summary>
-    /// <param name="count">The number of cards to draw.</param>
-    public void DrawCards(int count)
+    /// <param name="card">The card to remove.</param>
+    public void RemoveCardFromDeck(Card card)
     {
-        if (deck.Count >= count)
+        if (deck.Contains(card))
         {
-            deck.RemoveRange(0, count);
+            deck.Remove(card);
+            Debug.Log($"Card removed: {card.Rank} of {card.Suit}");
         }
         else
         {
-            deck.Clear();
+            Debug.LogWarning("Attempted to remove a card that is not in the deck.");
         }
     }
 
@@ -103,6 +121,18 @@ public class DeckManager : MonoBehaviour
             "Hearts" => CardType.HealingPotion,
             _ => CardType.None
         };
+    }
+
+    /// <summary>
+    /// Prints the entire deck to the console for debugging purposes.
+    /// </summary>
+    private void PrintDeck()
+    {
+        Debug.Log("Current Deck:");
+        foreach (var card in deck)
+        {
+            Debug.Log($"Card: {card.Rank} of {card.Suit}, Type: {card.Type}");
+        }
     }
 }
 
