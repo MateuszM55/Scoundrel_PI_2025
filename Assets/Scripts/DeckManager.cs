@@ -91,11 +91,15 @@ public class DeckManager : MonoBehaviour
         {
             foreach (string suit in suits)
             {
-                // Apply difficulty-specific filters
-                if (difficulty == "Easy" && suit == "Spades" && rank == 14) // Exclude black aces
+                // Exclude jokers (not represented in this range), red face cards, and red aces
+                if ((suit == "Diamonds" || suit == "Hearts") && (rank >= 11 || rank == 14)) // Red face cards and red aces
                     continue;
 
-                if (difficulty == "Hard" && suit == "Hearts" && rank == 10) // Exclude healing potions with value 10
+                // Apply difficulty-specific filters
+                if (difficulty == "Easy" && suit == "Spades" && rank == 14) // Exclude black aces for Easy
+                    continue;
+
+                if (difficulty == "Hard" && suit == "Hearts" && rank == 10) // Exclude healing potions with value 10 for Hard
                     continue;
 
                 CardType type = DetermineCardType(suit);
