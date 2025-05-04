@@ -730,6 +730,11 @@ public class UIManager : MonoBehaviour
             return; // Prevent multiple instances
         }
 
+        // Calculate the score as the negative sum of all undefeated monsters
+        int score = -deckManager.deck
+            .Where(card => card.Type == CardType.Monster)
+            .Sum(card => card.Rank);
+
         // Hide the game UI
         gameMenu.SetActive(false);
 
@@ -759,6 +764,17 @@ public class UIManager : MonoBehaviour
         RectTransform textRect = gameOverText.GetComponent<RectTransform>();
         textRect.sizeDelta = new Vector2(300, 50);
         textRect.anchoredPosition = new Vector2(0, 50);
+
+        // Add "Score" text
+        GameObject scoreText = new GameObject("ScoreText");
+        scoreText.transform.SetParent(panel.transform);
+        TextMeshProUGUI scoreTextComponent = scoreText.AddComponent<TextMeshProUGUI>();
+        scoreTextComponent.text = $"Score: {score}"; // Display the calculated score
+        scoreTextComponent.fontSize = 24;
+        scoreTextComponent.alignment = TextAlignmentOptions.Center;
+        RectTransform scoreTextRect = scoreText.GetComponent<RectTransform>();
+        scoreTextRect.sizeDelta = new Vector2(300, 50);
+        scoreTextRect.anchoredPosition = new Vector2(0, 0); // Position below "Game Over" text
 
         // Add "Back to Menu" button
         GameObject backButton = new GameObject("BackToMenuButton");
@@ -815,6 +831,12 @@ public class UIManager : MonoBehaviour
             return; // Prevent multiple instances
         }
 
+        // Calculate the score as the sum of remaining health and the largest unused healing potion
+        int largestUnusedPotion = deckManager.deck
+            .Where(card => card.Type == CardType.HealingPotion)
+            .Max(card => card.Rank);
+        int score = gameManager.healthPoints + largestUnusedPotion;
+
         // Hide the game UI
         gameMenu.SetActive(false);
 
@@ -844,6 +866,17 @@ public class UIManager : MonoBehaviour
         RectTransform textRect = winText.GetComponent<RectTransform>();
         textRect.sizeDelta = new Vector2(300, 50);
         textRect.anchoredPosition = new Vector2(0, 50);
+
+        // Add "Score" text
+        GameObject scoreText = new GameObject("ScoreText");
+        scoreText.transform.SetParent(panel.transform);
+        TextMeshProUGUI scoreTextComponent = scoreText.AddComponent<TextMeshProUGUI>();
+        scoreTextComponent.text = $"Score: {score}"; // Display the calculated score
+        scoreTextComponent.fontSize = 24;
+        scoreTextComponent.alignment = TextAlignmentOptions.Center;
+        RectTransform scoreTextRect = scoreText.GetComponent<RectTransform>();
+        scoreTextRect.sizeDelta = new Vector2(300, 50);
+        scoreTextRect.anchoredPosition = new Vector2(0, 0); // Position below "You Win" text
 
         // Add "Back to Menu" button
         GameObject backButton = new GameObject("BackToMenuButton");
