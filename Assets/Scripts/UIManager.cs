@@ -139,6 +139,16 @@ public class UIManager : MonoBehaviour
     {
         selectedDifficulty = difficultyDropdown.options[index].text;
         Debug.Log($"Difficulty changed to: {selectedDifficulty}");
+
+        // Regenerate the deck with the new difficulty
+        if (deckManager != null)
+        {
+            deckManager.InitializeDeck(selectedDifficulty);
+        }
+
+        // Reinitialize the card buttons and update the UI
+        InitializeCardButtons();
+        UpdateRemainingCardsText();
     }
 
     /// <summary>
@@ -267,6 +277,9 @@ public class UIManager : MonoBehaviour
                     UpdateInfoText("Unknown card type.");
                     break;
             }
+
+            // Debug log to display the number of cards remaining in the deck
+            Debug.Log($"Cards remaining in deck: {deckManager.GetRemainingCardsCount()}");
 
             // Update stats display, including remaining cards
             UpdateStatsDisplay();

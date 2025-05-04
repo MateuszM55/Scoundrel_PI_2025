@@ -96,7 +96,7 @@ public class DeckManager : MonoBehaviour
                     continue;
 
                 // Apply difficulty-specific filters
-                if (difficulty == "Easy" && suit == "Spades" && rank == 14) // Exclude black aces for Easy
+                if (difficulty == "Easy" && (suit == "Spades" || suit == "Clubs") && rank == 14) // Exclude black aces for Easy
                     continue;
 
                 if (difficulty == "Hard" && suit == "Hearts" && rank == 10) // Exclude healing potions with value 10 for Hard
