@@ -1655,7 +1655,7 @@ MonoBehaviour:
   achievementsMenu: {fileID: 2119280408}
   gameMenu: {fileID: 639457477}
   difficultyDropdown: {fileID: 2012952506}
-  audioManager: {fileID: 0}
+  audioManager: {fileID: 559902773}
   backgroundMusic: {fileID: 0}
   weaponImage: {fileID: 1220660598}
 --- !u!114 &559902769
@@ -1687,6 +1687,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b97b422f5135954e87b5161f79ea59c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  healingPotionCounter: 0
 --- !u!4 &559902771
 Transform:
   m_ObjectHideFlags: 0
@@ -1739,6 +1740,7 @@ MonoBehaviour:
   monsterSound: {fileID: 8300000, guid: 1ade1f2211903bb4e96606bc7981f844, type: 3}
   weaponSound: {fileID: 8300000, guid: 6611263cacc0ba5439e24e7b4e171bf4, type: 3}
   healingPotionSound: {fileID: 8300000, guid: a48de5a98d6cc5d488b75f7c18228695, type: 3}
+  runSound: {fileID: 8300000, guid: c3724fda7bce2194fa556b7854221ea2, type: 3}
 --- !u!1 &584617006
 GameObject:
   m_ObjectHideFlags: 0

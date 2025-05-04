@@ -37,6 +37,12 @@ public class AudioManager : MonoBehaviour
     public AudioClip healingPotionSound;
 
     /// <summary>
+    /// Sound effects for different actions.
+    /// </summary>
+    [Header("Action Sound Effects")]
+    public AudioClip runSound; // Add a sound effect for running
+
+    /// <summary>
     /// Ensures a single instance of AudioManager exists and persists across scenes.
     /// </summary>
     private void Awake()

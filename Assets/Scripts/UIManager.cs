@@ -399,6 +399,13 @@ public class UIManager : MonoBehaviour
             return;
         }
 
+        // Play the running sound effect
+        if (audioManager != null)
+        {
+            Debug.Log("Playing run sound effect.");
+            audioManager.PlaySFX(audioManager.runSound);
+        }
+
         // Move all current cards to the bottom of the deck
         foreach (Button button in cardButtons)
         {
