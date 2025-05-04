@@ -589,6 +589,12 @@ public class UIManager : MonoBehaviour
         // Assign listener for the Quit button
         quitButton.onClick.AddListener(OnQuitClicked);
 
+        // Set initial volume slider value to the default volume from AudioManager
+        if (audioManager != null && volumeSlider != null)
+        {
+            volumeSlider.value = audioManager.GetDefaultVolume();
+        }
+
         // Set initial volume slider value
         volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
     }

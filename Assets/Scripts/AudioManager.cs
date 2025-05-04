@@ -43,6 +43,11 @@ public class AudioManager : MonoBehaviour
     public AudioClip runSound; // Add a sound effect for running
 
     /// <summary>
+    /// The default volume level for the game (range: 0.0 to 1.0).
+    /// </summary>
+    private float defaultVolume = 0.5f; // Set the default volume to 50%
+
+    /// <summary>
     /// Ensures a single instance of AudioManager exists and persists across scenes.
     /// </summary>
     private void Awake()
@@ -119,6 +124,15 @@ public class AudioManager : MonoBehaviour
     public void SetVolume(float volume)
     {
         AudioListener.volume = volume;
+    }
+
+    /// <summary>
+    /// Retrieves the default volume level.
+    /// </summary>
+    /// <returns>The default volume level.</returns>
+    public float GetDefaultVolume()
+    {
+        return defaultVolume;
     }
 
     /// <summary>
