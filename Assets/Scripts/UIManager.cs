@@ -245,16 +245,26 @@ public class UIManager : MonoBehaviour
             switch (card.Type)
             {
                 case CardType.HealingPotion:
-                    gameManager.healthPoints += card.Rank;
-                    if (gameManager.healthPoints > 20) // Enforce health cap
+                    Debug.Log("[UIManager] Healing potion card clicked.");
+                    if (deckManager.healingPotionCounter >= 1)
                     {
-                        gameManager.healthPoints = 20;
-                        UpdateInfoText("Healed to full health.");
+                        UpdateInfoText("Healing effect suppressed due to excessive potion use.");
                     }
                     else
                     {
-                        UpdateInfoText($"Healed for {card.Rank} HP. Current HP: {gameManager.healthPoints}");
+                        gameManager.healthPoints += card.Rank;
+                        if (gameManager.healthPoints > 20) // Enforce health cap
+                        {
+                            gameManager.healthPoints = 20;
+                            UpdateInfoText("Healed to full health.");
+                        }
+                        else
+                        {
+                            UpdateInfoText($"Healed for {card.Rank} HP. Current HP: {gameManager.healthPoints}");
+                        }
                     }
+                    deckManager.healingPotionCounter++;
+                    deckManager.LogHealingPotionCounter(); // Log the updated counter value
                     break;
 
                 case CardType.Weapon:
@@ -307,6 +317,11 @@ public class UIManager : MonoBehaviour
         int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
         if (activeButtons == 1)
         {
+            // Reset the healing potion counter when cards are redrawn
+            Debug.Log("[UIManager] Resetting healingPotionCounter during card redraw.");
+            deckManager.healingPotionCounter = 0;
+            deckManager.LogHealingPotionCounter(); // Log the reset counter value
+
             UpdateRemainingCardsText(); // Display remaining cards
             // Identify the remaining card
             Button remainingButton = cardButtons.FirstOrDefault(button => button.gameObject.activeSelf);

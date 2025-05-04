@@ -13,6 +13,17 @@ public class DeckManager : MonoBehaviour
     public List<Card> deck;
 
     /// <summary>
+    /// Tracks the number of healing potions used in the current set of 4 cards.
+    /// </summary>
+    public int healingPotionCounter = 0;
+
+    // Add a method to log the current value of the healingPotionCounter
+    public void LogHealingPotionCounter()
+    {
+        Debug.Log($"[DeckManager] Current healingPotionCounter: {healingPotionCounter}");
+    }
+
+    /// <summary>
     /// Initializes the deck when the object is awakened.
     /// </summary>
     private void Awake()
