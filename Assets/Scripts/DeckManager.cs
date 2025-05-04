@@ -70,6 +70,12 @@ public class DeckManager : MonoBehaviour
         {
             deck.Remove(card);
             Debug.Log($"Card removed: {card.Rank} of {card.Suit}");
+
+            // Play sound effect based on card type
+            if (AudioManager.Instance != null && card.Type != CardType.Monster)
+            {
+                AudioManager.Instance.PlayCardTypeSound(card.Type);
+            }
         }
         else
         {

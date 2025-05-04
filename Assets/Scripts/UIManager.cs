@@ -467,12 +467,24 @@ public class UIManager : MonoBehaviour
                         gameManager.weapon.lastSlainMonster = monsterCard.Rank; // Update last slain monster
                         UpdateInfoText($"Monster slain! Last slain monster updated to {gameManager.weapon.lastSlainMonster}");
                         UpdateStatsDisplay();
+
+                        // Play monster sound effect after weapon choice
+                        if (AudioManager.Instance != null)
+                        {
+                            AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
+                        }
                     },
                     onFistsSelected: () =>
                     {
                         gameManager.healthPoints -= monsterStrength;
                         UpdateInfoText($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
                         UpdateStatsDisplay();
+
+                        // Play monster sound effect after fists choice
+                        if (AudioManager.Instance != null)
+                        {
+                            AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
+                        }
                     }
                 );
             }
@@ -482,6 +494,12 @@ public class UIManager : MonoBehaviour
                 gameManager.healthPoints -= monsterStrength;
                 UpdateInfoText($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
                 UpdateStatsDisplay();
+
+                // Play monster sound effect for auto fists fight
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
+                }
             }
         }
         else
@@ -490,6 +508,12 @@ public class UIManager : MonoBehaviour
             gameManager.healthPoints -= monsterStrength;
             UpdateInfoText($"No weapon equipped or weapon strength is zero! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
             UpdateStatsDisplay();
+
+            // Play monster sound effect for auto fists fight
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
+            }
         }
     }
 

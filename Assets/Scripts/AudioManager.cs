@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// Manages audio playback, including music and sound effects, for the game.
@@ -22,6 +23,20 @@ public class AudioManager : MonoBehaviour
     public AudioSource sfxSource;
 
     /// <summary>
+    /// The list of available music tracks.
+    /// </summary>
+    [Header("Music Tracks")]
+    public List<AudioClip> musicTracks;
+
+    /// <summary>
+    /// Sound effects for different card types.
+    /// </summary>
+    [Header("Card Type Sound Effects")]
+    public AudioClip monsterSound;
+    public AudioClip weaponSound;
+    public AudioClip healingPotionSound;
+
+    /// <summary>
     /// Ensures a single instance of AudioManager exists and persists across scenes.
     /// </summary>
     private void Awake()
@@ -34,6 +49,20 @@ public class AudioManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+        }
+
+        // Play random music on awake
+        PlayRandomMusic();
+    }
+
+    /// <summary>
+    /// Continuously plays random music when the current track finishes.
+    /// </summary>
+    private void Update()
+    {
+        if (musicSource != null && !musicSource.isPlaying && musicSource.clip != null)
+        {
+            PlayRandomMusic();
         }
     }
 
@@ -84,5 +113,48 @@ public class AudioManager : MonoBehaviour
     public void SetVolume(float volume)
     {
         AudioListener.volume = volume;
+    }
+
+    /// <summary>
+    /// Plays a random song from the list of available music tracks.
+    /// </summary>
+    public void PlayRandomMusic(float volume = 1.0f)
+    {
+        if (musicTracks != null && musicTracks.Count > 0)
+        {
+            // Select a random track
+            int randomIndex = Random.Range(0, musicTracks.Count);
+            AudioClip randomTrack = musicTracks[randomIndex];
+
+            // Play the selected track
+            PlayMusic(randomTrack, volume);
+        }
+        else
+        {
+            Debug.LogWarning("No music tracks available to play.");
+        }
+    }
+
+    /// <summary>
+    /// Plays a sound effect based on the card type.
+    /// </summary>
+    /// <param name="cardType">The type of the card.</param>
+    public void PlayCardTypeSound(CardType cardType)
+    {
+        switch (cardType)
+        {
+            case CardType.Monster:
+                PlaySFX(monsterSound);
+                break;
+            case CardType.Weapon:
+                PlaySFX(weaponSound);
+                break;
+            case CardType.HealingPotion:
+                PlaySFX(healingPotionSound);
+                break;
+            default:
+                Debug.LogWarning("No sound effect assigned for this card type.");
+                break;
+        }
     }
 }
