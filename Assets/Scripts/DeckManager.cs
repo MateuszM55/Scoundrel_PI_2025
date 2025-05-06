@@ -108,6 +108,10 @@ public class DeckManager : MonoBehaviour
         {
             foreach (string suit in suits)
             {
+                // Exclude diamonds with rank 11 or higher
+                if (suit == "Diamonds" && rank >= 11)
+                    continue;
+
                 // Exclude jokers (not represented in this range), red face cards, and red aces
                 if ((suit == "Diamonds" || suit == "Hearts") && (rank >= 11 || rank == 14)) // Red face cards and red aces
                     continue;

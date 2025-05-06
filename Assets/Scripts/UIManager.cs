@@ -76,6 +76,11 @@ public class UIManager : MonoBehaviour
     private GameObject winScreen;
 
     /// <summary>
+    /// Reference to the CardImageManager instance.
+    /// </summary>
+    public CardImageManager cardImageManager;
+
+    /// <summary>
     /// Initializes the UIManager at the start of the game.
     /// </summary>
     private void Start()
@@ -169,8 +174,20 @@ public class UIManager : MonoBehaviour
                 Card card = initialCards[i];
                 Button button = cardButtons[i];
                 button.gameObject.SetActive(true);
-                button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString(); // Display rank
-                button.GetComponent<Image>().color = GetCardColor(card.Type);
+
+                // Assign the appropriate image to the card button
+                if (cardImageManager != null)
+                {
+                    Sprite cardSprite = cardImageManager.GetCardSprite(card);
+                    if (cardSprite != null)
+                    {
+                        button.GetComponent<Image>().sprite = cardSprite;
+                    }
+                }
+
+                // Add or update corner text for the card's value
+                UpdateCardCornerText(button, card.Rank);
+
                 button.onClick.RemoveAllListeners();
 
                 // Use a local variable to correctly capture the card reference
@@ -189,6 +206,66 @@ public class UIManager : MonoBehaviour
 
         // Update the remaining cards text
         UpdateStatsDisplay();
+    }
+
+    /// <summary>
+    /// Updates the corner text of a card button to display the card's value.
+    /// </summary>
+    /// <param name="button">The button representing the card.</param>
+    /// <param name="value">The value of the card to display.</param>
+    private void UpdateCardCornerText(Button button, int value)
+    {
+        // Ensure the button has a RectTransform
+        RectTransform buttonRect = button.GetComponent<RectTransform>();
+
+        // Adjust positions to ensure text stays inside the button
+        Vector2 topLeftPosition = new Vector2(-buttonRect.rect.width / 2 + 20, buttonRect.rect.height / 2 - 20);
+        Vector2 bottomRightPosition = new Vector2(buttonRect.rect.width / 2 - 20, -buttonRect.rect.height / 2 + 20);
+
+        // Create or update the top-left corner text
+        TextMeshProUGUI topLeftText = GetOrCreateCornerText(button, "TopLeftText", topLeftPosition);
+        topLeftText.text = value.ToString();
+        topLeftText.color = Color.white; // Set text color to white
+
+        // Create or update the bottom-right corner text
+        TextMeshProUGUI bottomRightText = GetOrCreateCornerText(button, "BottomRightText", bottomRightPosition);
+        bottomRightText.text = value.ToString();
+        bottomRightText.color = Color.white; // Set text color to white
+    }
+
+    /// <summary>
+    /// Retrieves or creates a corner text object for a card button.
+    /// </summary>
+    /// <param name="button">The button representing the card.</param>
+    /// <param name="name">The name of the text object.</param>
+    /// <param name="anchoredPosition">The anchored position of the text object.</param>
+    /// <returns>The TextMeshProUGUI component of the corner text object.</returns>
+    private TextMeshProUGUI GetOrCreateCornerText(Button button, string name, Vector2 anchoredPosition)
+    {
+        // Check if the text object already exists
+        Transform existingTextTransform = button.transform.Find(name);
+        if (existingTextTransform != null)
+        {
+            return existingTextTransform.GetComponent<TextMeshProUGUI>();
+        }
+
+        // Create a new text object
+        GameObject textObject = new GameObject(name);
+        textObject.transform.SetParent(button.transform);
+
+        // Configure the RectTransform
+        RectTransform rectTransform = textObject.AddComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(60, 30); // Increased size to fit two-digit numbers
+        rectTransform.anchoredPosition = anchoredPosition;
+        rectTransform.anchorMin = rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+
+        // Add and configure the TextMeshProUGUI component
+        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
+        text.fontSize = 42; // Keep the larger font size
+        text.alignment = TextAlignmentOptions.Center;
+        text.color = Color.black; // Adjust color as needed
+
+        return text;
     }
 
     /// <summary>
@@ -355,8 +432,18 @@ public class UIManager : MonoBehaviour
                 {
                     // Keep the remaining card intact
                     button.gameObject.SetActive(true);
-                    button.GetComponentInChildren<TextMeshProUGUI>().text = remainingCard.Rank.ToString();
-                    button.GetComponent<Image>().color = GetCardColor(remainingCard.Type);
+                    UpdateCardCornerText(button, remainingCard.Rank); // Update both corners
+
+                    // Update the sprite for the remaining card
+                    if (cardImageManager != null)
+                    {
+                        Sprite cardSprite = cardImageManager.GetCardSprite(remainingCard);
+                        if (cardSprite != null)
+                        {
+                            button.GetComponent<Image>().sprite = cardSprite;
+                        }
+                    }
+
                     button.onClick.RemoveAllListeners();
                     button.onClick.AddListener(() => OnCardClicked(button));
 
@@ -368,8 +455,18 @@ public class UIManager : MonoBehaviour
                     // Update button with a new card
                     Card card = newCards[newCardIndex++];
                     button.gameObject.SetActive(true);
-                    button.GetComponentInChildren<TextMeshProUGUI>().text = card.Rank.ToString();
-                    button.GetComponent<Image>().color = GetCardColor(card.Type);
+                    UpdateCardCornerText(button, card.Rank); // Update both corners
+
+                    // Update the sprite for the new card
+                    if (cardImageManager != null)
+                    {
+                        Sprite cardSprite = cardImageManager.GetCardSprite(card);
+                        if (cardSprite != null)
+                        {
+                            button.GetComponent<Image>().sprite = cardSprite;
+                        }
+                    }
+
                     button.onClick.RemoveAllListeners();
                     button.onClick.AddListener(() => OnCardClicked(button));
 
