@@ -65,11 +65,11 @@ public class UIManager : MonoBehaviour
     // Add a reference to the AudioManager
     public AudioManager audioManager;
 
-    // Add a reference for background music
-    public AudioClip backgroundMusic;
-
     // Add a reference for the weapon image UI element
     public Image weaponImage;
+
+    // Remove the reference for the default weapon image
+    // public Sprite defaultWeaponImage;
 
     // Add private fields to track the game over and win screens
     private GameObject gameOverScreen;
@@ -96,12 +96,6 @@ public class UIManager : MonoBehaviour
 
         // Initialize main menu buttons
         InitializeMainMenu();
-
-        // Play background music
-        if (audioManager != null && backgroundMusic != null)
-        {
-            audioManager.PlayMusic(backgroundMusic);
-        }
 
         // Update the remaining cards text at the start
         UpdateRemainingCardsText();
@@ -209,7 +203,7 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the corner text of a card button to display the card's value.
+    /// Updates the corner text of a card button to display the card's value in all four corners.
     /// </summary>
     /// <param name="button">The button representing the card.</param>
     /// <param name="value">The value of the card to display.</param>
@@ -220,12 +214,24 @@ public class UIManager : MonoBehaviour
 
         // Adjust positions to ensure text stays inside the button
         Vector2 topLeftPosition = new Vector2(-buttonRect.rect.width / 2 + 20, buttonRect.rect.height / 2 - 20);
+        Vector2 topRightPosition = new Vector2(buttonRect.rect.width / 2 - 20, buttonRect.rect.height / 2 - 20);
+        Vector2 bottomLeftPosition = new Vector2(-buttonRect.rect.width / 2 + 20, -buttonRect.rect.height / 2 + 20);
         Vector2 bottomRightPosition = new Vector2(buttonRect.rect.width / 2 - 20, -buttonRect.rect.height / 2 + 20);
 
         // Create or update the top-left corner text
         TextMeshProUGUI topLeftText = GetOrCreateCornerText(button, "TopLeftText", topLeftPosition);
         topLeftText.text = value.ToString();
         topLeftText.color = Color.white; // Set text color to white
+
+        // Create or update the top-right corner text
+        TextMeshProUGUI topRightText = GetOrCreateCornerText(button, "TopRightText", topRightPosition);
+        topRightText.text = value.ToString();
+        topRightText.color = Color.white; // Set text color to white
+
+        // Create or update the bottom-left corner text
+        TextMeshProUGUI bottomLeftText = GetOrCreateCornerText(button, "BottomLeftText", bottomLeftPosition);
+        bottomLeftText.text = value.ToString();
+        bottomLeftText.color = Color.white; // Set text color to white
 
         // Create or update the bottom-right corner text
         TextMeshProUGUI bottomRightText = GetOrCreateCornerText(button, "BottomRightText", bottomRightPosition);
@@ -353,7 +359,7 @@ public class UIManager : MonoBehaviour
                     UpdateInfoText($"Equipped weapon with Strength: {card.Rank}, Last Slain Monster: {gameManager.weapon.lastSlainMonster}");
 
                     // Update the weapon image
-                    UpdateWeaponImage(card);
+                    UpdateWeaponImage(card); // Ensure the image updates when a weapon card is clicked
                     break;
 
                 case CardType.Monster:
@@ -432,7 +438,7 @@ public class UIManager : MonoBehaviour
                 {
                     // Keep the remaining card intact
                     button.gameObject.SetActive(true);
-                    UpdateCardCornerText(button, remainingCard.Rank); // Update both corners
+                    UpdateCardCornerText(button, remainingCard.Rank); // Update all corners
 
                     // Update the sprite for the remaining card
                     if (cardImageManager != null)
@@ -455,7 +461,7 @@ public class UIManager : MonoBehaviour
                     // Update button with a new card
                     Card card = newCards[newCardIndex++];
                     button.gameObject.SetActive(true);
-                    UpdateCardCornerText(button, card.Rank); // Update both corners
+                    UpdateCardCornerText(button, card.Rank); // Update all corners
 
                     // Update the sprite for the new card
                     if (cardImageManager != null)
@@ -807,12 +813,21 @@ public class UIManager : MonoBehaviour
     {
         if (weaponImage != null)
         {
-            // Assuming weaponCard.Suit or weaponCard.Rank determines the image
-            Sprite weaponSprite = GetWeaponSprite(weaponCard);
-            if (weaponSprite != null)
+            if (weaponCard != null)
             {
-                weaponImage.sprite = weaponSprite;
-                weaponImage.enabled = true; // Ensure the image is visible
+                // Assuming weaponCard.Suit or weaponCard.Rank determines the image
+                Sprite weaponSprite = GetWeaponSprite(weaponCard);
+                if (weaponSprite != null)
+                {
+                    weaponImage.sprite = weaponSprite;
+                    weaponImage.enabled = true; // Ensure the image is visible
+                }
+            }
+            else
+            {
+                // Clear the weapon image if no weapon is equipped
+                weaponImage.sprite = null;
+                weaponImage.enabled = false; // Hide the image
             }
         }
     }
@@ -824,9 +839,13 @@ public class UIManager : MonoBehaviour
     /// <returns>The sprite associated with the weapon card.</returns>
     private Sprite GetWeaponSprite(Card weaponCard)
     {
-        // Replace this with your logic to fetch the correct sprite based on the weapon card
-        // For example, you might use a dictionary or a switch statement
-        return null; // Placeholder
+        if (cardImageManager == null || weaponCard == null)
+        {
+            return null; // Return null if CardImageManager or weaponCard is not available
+        }
+
+        // Use the CardImageManager to fetch the sprite based on the weapon card's rank
+        return cardImageManager.GetCardSprite(weaponCard);
     }
 
     /// <summary>
