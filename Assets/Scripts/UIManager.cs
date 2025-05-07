@@ -75,6 +75,13 @@ public class UIManager : MonoBehaviour
     private GameObject gameOverScreen;
     private GameObject winScreen;
 
+    // Add references for menu and gameplay background sprites
+    public Sprite menuBackground;
+    public Sprite gameplayBackground;
+
+    // Add a reference for the background image UI element
+    public Image backgroundImage;
+
     /// <summary>
     /// Reference to the CardImageManager instance.
     /// </summary>
@@ -96,6 +103,12 @@ public class UIManager : MonoBehaviour
 
         // Initialize main menu buttons
         InitializeMainMenu();
+
+        // Set the initial background to the menu background
+        if (backgroundImage != null && menuBackground != null)
+        {
+            backgroundImage.sprite = menuBackground;
+        }
 
         // Update the remaining cards text at the start
         UpdateRemainingCardsText();
@@ -744,6 +757,12 @@ public class UIManager : MonoBehaviour
         {
             Debug.LogError("Game menu GameObject is not assigned in the inspector.");
         }
+
+        // Change the background to the gameplay background
+        if (backgroundImage != null && gameplayBackground != null)
+        {
+            backgroundImage.sprite = gameplayBackground;
+        }
     }
 
     /// <summary>
@@ -934,6 +953,12 @@ public class UIManager : MonoBehaviour
             gameOverScreen = null; // Reset the reference
             ToggleMainMenu(true); // Show the main menu
         });
+
+        // Change the background back to the menu background
+        if (backgroundImage != null && menuBackground != null)
+        {
+            backgroundImage.sprite = menuBackground;
+        }
     }
 
     /// <summary>
@@ -1036,5 +1061,11 @@ public class UIManager : MonoBehaviour
             winScreen = null; // Reset the reference
             ToggleMainMenu(true); // Show the main menu
         });
+
+        // Change the background back to the menu background
+        if (backgroundImage != null && menuBackground != null)
+        {
+            backgroundImage.sprite = menuBackground;
+        }
     }
 }
