@@ -377,11 +377,7 @@ public class UIManager : MonoBehaviour
 
                 case CardType.Monster:
                     TriggerFight(card);
-                    break;
-
-                default:
-                    UpdateInfoText("Unknown card type.");
-                    break;
+                    return; // Exit early to prevent premature card cycling
             }
 
             // Debug log to display the number of cards remaining in the deck
@@ -681,6 +677,7 @@ public class UIManager : MonoBehaviour
             onWeaponSelected?.Invoke();
             fightPopup.SetActive(false); // Disable the popup after selection
             SetButtonsInteractable(true); // Re-enable all buttons
+            CycleCards(); // Cycle cards after the choice is made
         });
 
         fistsButton.onClick.RemoveAllListeners();
@@ -689,6 +686,7 @@ public class UIManager : MonoBehaviour
             onFistsSelected?.Invoke();
             fightPopup.SetActive(false); // Disable the popup after selection
             SetButtonsInteractable(true); // Re-enable all buttons
+            CycleCards(); // Cycle cards after the choice is made
         });
     }
 
