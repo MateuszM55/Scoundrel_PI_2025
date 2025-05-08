@@ -68,8 +68,8 @@ public class UIManager : MonoBehaviour
     // Add a reference for the weapon image UI element
     public Image weaponImage;
 
-    // Remove the reference for the default weapon image
-    // public Sprite defaultWeaponImage;
+    // Add a public reference for the default weapon image
+    public Sprite defaultWeaponImage;
 
     // Add private fields to track the game over and win screens
     private GameObject gameOverScreen;
@@ -842,9 +842,9 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                // Clear the weapon image if no weapon is equipped
-                weaponImage.sprite = null;
-                weaponImage.enabled = false; // Hide the image
+                // Reset to the default weapon image if no weapon is equipped
+                weaponImage.sprite = defaultWeaponImage;
+                weaponImage.enabled = defaultWeaponImage != null; // Hide the image if no default is set
             }
         }
     }
@@ -957,6 +957,19 @@ public class UIManager : MonoBehaviour
         {
             backgroundImage.sprite = menuBackground;
         }
+
+        // Reset the game state
+        gameManager.ResetGameState();
+        deckManager.InitializeDeck(selectedDifficulty); // Reinitialize the deck
+        InitializeCardButtons(); // Reinitialize the UI
+        UpdateStatsDisplay(); // Update the stats display
+
+        // Reset info text and update remaining cards text
+        infoText.text = "info";
+        UpdateRemainingCardsText();
+
+        // Reset the weapon image to default
+        UpdateWeaponImage(null);
     }
 
     /// <summary>
@@ -1065,5 +1078,18 @@ public class UIManager : MonoBehaviour
         {
             backgroundImage.sprite = menuBackground;
         }
+
+        // Reset the game state
+        gameManager.ResetGameState();
+        deckManager.InitializeDeck(selectedDifficulty); // Reinitialize the deck
+        InitializeCardButtons(); // Reinitialize the UI
+        UpdateStatsDisplay(); // Update the stats display
+
+        // Reset info text and update remaining cards text
+        infoText.text = "info";
+        UpdateRemainingCardsText();
+
+        // Reset the weapon image to default
+        UpdateWeaponImage(null);
     }
 }

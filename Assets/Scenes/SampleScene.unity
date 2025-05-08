@@ -1660,6 +1660,7 @@ MonoBehaviour:
   difficultyDropdown: {fileID: 2012952506}
   audioManager: {fileID: 559902773}
   weaponImage: {fileID: 1220660598}
+  defaultWeaponImage: {fileID: -2151256579594707336, guid: 00cff29c6a241954d8d514ee0e5eef0a, type: 3}
   menuBackground: {fileID: 2511669658475298155, guid: 7c6bbdb0dc2139640b2a7df07b85f5c4, type: 3}
   gameplayBackground: {fileID: 8487483650710156834, guid: 9b515c5df515e424ab6db93a8215efe2, type: 3}
   backgroundImage: {fileID: 659002552}

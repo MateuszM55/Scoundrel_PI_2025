@@ -44,6 +44,17 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Resets the game state to its initial values.
+    /// </summary>
+    public void ResetGameState()
+    {
+        healthPoints = 20; // Reset health to the initial value
+        weapon = null; // Remove any equipped weapon
+        // Add any other properties that need to be reset
+        Debug.Log("[GameManager] Game state has been reset.");
+    }
+
+    /// <summary>
     /// Retrieves the current game state.
     /// </summary>
     /// <returns>A <see cref="GameState"/> object representing the current game state.</returns>

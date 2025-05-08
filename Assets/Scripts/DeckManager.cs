@@ -24,6 +24,16 @@ public class DeckManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Resets the deck manager to its initial state.
+    /// </summary>
+    public void ResetDeckManager(string difficulty = "Normal")
+    {
+        InitializeDeck(difficulty); // Reinitialize the deck
+        healingPotionCounter = 0; // Reset the healing potion counter
+        Debug.Log("[DeckManager] Deck manager has been reset.");
+    }
+
+    /// <summary>
     /// Initializes the deck when the object is awakened.
     /// </summary>
     private void Awake()
@@ -104,7 +114,7 @@ public class DeckManager : MonoBehaviour
         List<Card> newDeck = new List<Card>();
 
         string[] suits = { "Clubs", "Spades", "Diamonds", "Hearts" };
-        for (int rank = 2; rank <= 14; rank++) // 2 to Ace (14)
+        for (int rank = 2; rank <= 4; rank++) // 2 to Ace (14)
         {
             foreach (string suit in suits)
             {
