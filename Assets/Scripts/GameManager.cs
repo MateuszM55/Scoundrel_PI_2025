@@ -33,19 +33,6 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Resets the game state to its initial values.
     /// </summary>
-    public void InitializeGame()
-    {
-        // Reset health points and weapon
-        healthPoints = 20;
-        weapon = null;
-        highScore = 0; // Reset high score
-
-        // Add any additional initialization logic here
-    }
-
-    /// <summary>
-    /// Resets the game state to its initial values.
-    /// </summary>
     public void ResetGameState()
     {
         healthPoints = 20; // Reset health to the initial value

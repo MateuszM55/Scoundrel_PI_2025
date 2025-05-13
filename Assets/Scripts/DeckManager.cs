@@ -34,20 +34,6 @@ public class DeckManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Initializes the deck when the object is awakened.
-    /// </summary>
-    private void Awake()
-    {
-        deck = GenerateDeck("Normal");
-
-        // Shuffle the deck after generation
-        ShuffleDeck();
-
-        // Debug: Print the entire deck
-        PrintDeck();
-    }
-
-    /// <summary>
     /// Initializes the deck based on the specified difficulty and shuffles it.
     /// </summary>
     /// <param name="difficulty">The difficulty level to use for deck generation.</param>
@@ -102,6 +88,9 @@ public class DeckManager : MonoBehaviour
         {
             Debug.LogWarning("Attempted to remove a card that is not in the deck.");
         }
+
+        // Ensure the deck count is updated
+        Debug.Log($"Remaining cards in deck: {deck.Count}");
     }
 
     /// <summary>

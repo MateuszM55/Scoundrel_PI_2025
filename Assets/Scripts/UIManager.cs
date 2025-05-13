@@ -92,14 +92,11 @@ public class UIManager : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        // Initialize difficulty dropdown
-        InitializeDifficultyDropdown();
-
         // Initialize UI with current values
         UpdateStatsDisplay();
 
-        // Initialize card buttons
-        InitializeCardButtons();
+        // Initialize difficulty dropdown
+        InitializeDifficultyDropdown();
 
         // Initialize main menu buttons
         InitializeMainMenu();
@@ -140,6 +137,7 @@ public class UIManager : MonoBehaviour
                 new TMP_Dropdown.OptionData("Hard")
             };
             difficultyDropdown.value = 1; // Default to "Normal"
+           
         }
     }
 
@@ -168,21 +166,22 @@ public class UIManager : MonoBehaviour
     /// </summary>
     private void InitializeCardButtons()
     {
-        // Draw initial cards from the shuffled deck
+        // Draw initial cards from the shuffled deck and remove them from the deck  
         List<Card> initialCards = deckManager.deck.Take(cardButtons.Count).ToList();
+        deckManager.deck = deckManager.deck.Skip(cardButtons.Count).ToList();
 
-        buttonCardMap.Clear(); // Clear the map before populating it
+        buttonCardMap.Clear(); // Clear the map before populating it  
 
         for (int i = 0; i < cardButtons.Count; i++)
         {
             if (i < initialCards.Count)
             {
-                // Assign card to button
+                // Assign card to button  
                 Card card = initialCards[i];
                 Button button = cardButtons[i];
                 button.gameObject.SetActive(true);
 
-                // Assign the appropriate image to the card button
+                // Assign the appropriate image to the card button  
                 if (cardImageManager != null)
                 {
                     Sprite cardSprite = cardImageManager.GetCardSprite(card);
@@ -192,26 +191,26 @@ public class UIManager : MonoBehaviour
                     }
                 }
 
-                // Add or update corner text for the card's value
+                // Add or update corner text for the card's value  
                 UpdateCardCornerText(button, card.Rank);
 
                 button.onClick.RemoveAllListeners();
 
-                // Use a local variable to correctly capture the card reference
+                // Use a local variable to correctly capture the card reference  
                 Card capturedCard = card;
-                button.onClick.AddListener(() => OnCardClicked(button)); // Pass the button itself
+                button.onClick.AddListener(() => OnCardClicked(button)); // Pass the button itself  
 
-                // Map the button to the card
+                // Map the button to the card  
                 buttonCardMap[button] = card;
             }
             else
             {
-                // Hide extra buttons
+                // Hide extra buttons  
                 cardButtons[i].gameObject.SetActive(false);
             }
         }
 
-        // Update the remaining cards text
+        // Update the remaining cards text  
         UpdateStatsDisplay();
     }
 
@@ -300,15 +299,6 @@ public class UIManager : MonoBehaviour
             ? $"Last Slain Monster: {gameManager.weapon.lastSlainMonster}"
             : "Last Slain Monster: None";
         highScoreText.text = $"High Score: {gameManager.highScore}"; // Display the high score
-
-        // Check if health is 0 and trigger game over
-        if (gameManager.healthPoints <= 0)
-        {
-            HandleGameOver();
-        }
-
-        // Check if the player has won
-        CheckWinCondition();
     }
 
     /// <summary>
@@ -335,7 +325,9 @@ public class UIManager : MonoBehaviour
 
             // Hide the button and remove it from the map
             clickedButton.gameObject.SetActive(false);
-            buttonCardMap.Remove(clickedButton);
+            buttonCardMap.Remove(clickedButton); 
+
+            bool hasFought = false; // Flag to track if a fight has occurred
 
             // Handle card interaction
             switch (card.Type)
@@ -377,7 +369,8 @@ public class UIManager : MonoBehaviour
 
                 case CardType.Monster:
                     TriggerFight(card);
-                    return; // Exit early to prevent premature card cycling
+                    hasFought = true;
+                    break;
             }
 
             // Debug log to display the number of cards remaining in the deck
@@ -387,10 +380,15 @@ public class UIManager : MonoBehaviour
             UpdateStatsDisplay();
 
             // Check if card cycling is needed
-            CycleCards();
+            if (!hasFought)
+            {
+                CycleCards();
+            }
 
             // Re-enable running
             canRun = true;
+
+            hasFought = false; // Reset the flag for the next card click    
         }
         else
         {
@@ -432,11 +430,17 @@ public class UIManager : MonoBehaviour
                 }
             }
 
-            // Draw new cards excluding the remaining card
+            // Draw new cards excluding the remaining card and remove them from the deck  
             List<Card> newCards = deckManager.deck
-                .Where(c => remainingCard == null || c != remainingCard)
-                .Take(cardButtons.Count - 1)
-                .ToList();
+               .Where(c => remainingCard == null || c != remainingCard)
+               .Take(cardButtons.Count - 1)
+               .ToList();
+
+            // Remove the drawn cards from the deck  
+            foreach (var card in newCards)
+            {
+                deckManager.RemoveCardFromDeck(card);
+            }
 
             // Update card buttons
             int newCardIndex = 0;
@@ -527,7 +531,6 @@ public class UIManager : MonoBehaviour
                 Card card = deckManager.deck.FirstOrDefault(c => c.Rank == cardRank);
                 if (card != null)
                 {
-                    deckManager.deck.Remove(card);
                     deckManager.deck.Add(card); // Add to the bottom of the deck
                 }
             }
@@ -539,26 +542,6 @@ public class UIManager : MonoBehaviour
         canRun = false;
 
         UpdateInfoText("You ran away and drew new cards.");
-    }
-
-    /// <summary>
-    /// Gets the color associated with a specific card type.
-    /// </summary>
-    /// <param name="type">The type of the card.</param>
-    /// <returns>The color associated with the card type.</returns>
-    private Color GetCardColor(CardType type)
-    {
-        switch (type)
-        {
-            case CardType.Monster:
-                return Color.black;
-            case CardType.HealingPotion:
-                return Color.red;
-            case CardType.Weapon:
-                return Color.gray;
-            default:
-                return Color.white;
-        }
     }
 
     /// <summary>
@@ -594,19 +577,28 @@ public class UIManager : MonoBehaviour
                     {
                         int damage = Mathf.Min(gameManager.weapon.strength, monsterStrength);
                         monsterStrength -= damage;
-                        UpdateInfoText($"Used weapon! Monster strength reduced by {damage}. Remaining monster strength: {monsterStrength}");
 
                         gameManager.healthPoints -= monsterStrength;
-                        UpdateInfoText($"Monster attacked back! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+                        UpdateInfoText($"Used weapon but monster attacked back! Player health reduced by {monsterStrength}.");
+
+                       
                         gameManager.weapon.lastSlainMonster = monsterCard.Rank; // Update last slain monster
-                        UpdateInfoText($"Monster slain! Last slain monster updated to {gameManager.weapon.lastSlainMonster}");
                         UpdateStatsDisplay();
+                       
 
                         // Play monster sound effect after weapon choice
                         if (AudioManager.Instance != null)
                         {
                             AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
                         }
+                        // Check if the player's health is below 0 and trigger loss
+                        if (gameManager.healthPoints <= 0)
+                        {
+                            HandleGameOver();
+                            return;
+                        }
+
+                        CheckWinCondition();
                     },
                     onFistsSelected: () =>
                     {
@@ -619,14 +611,26 @@ public class UIManager : MonoBehaviour
                         {
                             AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
                         }
+                        // Check if the player's health is below 0 and trigger loss
+                        if (gameManager.healthPoints <= 0)
+                        {
+                            HandleGameOver();
+                            return;
+                        }
+
+                        CheckWinCondition();
                     }
                 );
+                return; // Exit the method after showing the popup
             }
             else
             {
-                UpdateInfoText($"Monster is too strong! Cannot use weapon. Fighting with fists instead.");
+
                 gameManager.healthPoints -= monsterStrength;
                 UpdateInfoText($"Fought with fists! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+
+                
+
                 UpdateStatsDisplay();
 
                 // Play monster sound effect for auto fists fight
@@ -634,6 +638,13 @@ public class UIManager : MonoBehaviour
                 {
                     AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
                 }
+                // Check if the player's health is below 0 and trigger loss
+                if (gameManager.healthPoints <= 0)
+                {
+                    HandleGameOver();
+                    return;
+                }
+                CheckWinCondition();
             }
         }
         else
@@ -641,6 +652,9 @@ public class UIManager : MonoBehaviour
             // No weapon equipped or weapon strength is zero, fight with fists
             gameManager.healthPoints -= monsterStrength;
             UpdateInfoText($"No weapon equipped or weapon strength is zero! Player health reduced by {monsterStrength}. Current HP: {gameManager.healthPoints}");
+
+           
+
             UpdateStatsDisplay();
 
             // Play monster sound effect for auto fists fight
@@ -648,7 +662,17 @@ public class UIManager : MonoBehaviour
             {
                 AudioManager.Instance.PlayCardTypeSound(CardType.Monster);
             }
+            // Check if the player's health is below 0 and trigger loss
+            if (gameManager.healthPoints <= 0)
+            {
+                HandleGameOver();
+                return;
+            }
+            CheckWinCondition();
+
         }
+
+        CycleCards(); // Cycle cards after the fight only when no popup was shown
     }
 
     /// <summary>
@@ -970,6 +994,9 @@ public class UIManager : MonoBehaviour
 
         // Reset the weapon image to default
         UpdateWeaponImage(null);
+
+        // Reset the canRun flag to allow running in the next game
+        canRun = true;
     }
 
     /// <summary>
@@ -978,8 +1005,10 @@ public class UIManager : MonoBehaviour
     private void CheckWinCondition()
     {
         // Check if all monsters have been selected and the player has positive health
-        bool allMonstersSelected = !deckManager.deck.Any(card => card.Type == CardType.Monster);
-        if (allMonstersSelected && gameManager.healthPoints > 0)
+        bool allMonstersSelectedInDeck = !deckManager.deck.Any(card => card.Type == CardType.Monster);
+        bool allMonstersSelectedInButtons = !buttonCardMap.Values.Any(card => card.Type == CardType.Monster);
+
+        if (allMonstersSelectedInDeck && allMonstersSelectedInButtons && gameManager.healthPoints > 0)
         {
             HandleWin();
         }
@@ -996,10 +1025,12 @@ public class UIManager : MonoBehaviour
             return; // Prevent multiple instances
         }
 
-        // Calculate the score as the sum of remaining health and the largest unused healing potion
+        // Calculate the score as the sum of remaining health and the largest unused healing potion  
         int largestUnusedPotion = deckManager.deck
-            .Where(card => card.Type == CardType.HealingPotion)
-            .Max(card => card.Rank);
+           .Where(card => card.Type == CardType.HealingPotion)
+           .Select(card => card.Rank)
+           .DefaultIfEmpty(0) // Ensure a default value of 0 if no elements exist  
+           .Max();
         int score = gameManager.healthPoints + largestUnusedPotion;
 
         // Hide the game UI
@@ -1091,5 +1122,80 @@ public class UIManager : MonoBehaviour
 
         // Reset the weapon image to default
         UpdateWeaponImage(null);
+
+        // Reset the canRun flag to allow running in the next game
+        canRun = true;
+    }
+
+    /// <summary>
+    /// Displays a full-screen panel with a text field showing the entire deck in order.
+    /// </summary>
+    public void ShowDeckOverview()
+    {
+        // Create the panel
+        GameObject panel = new GameObject("DeckOverviewPanel");
+        Canvas canvas = panel.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        panel.AddComponent<CanvasScaler>();
+        panel.AddComponent<GraphicRaycaster>();
+
+        // Add a semi-transparent background
+        GameObject background = new GameObject("Background");
+        background.transform.SetParent(panel.transform);
+        RectTransform bgRect = background.AddComponent<RectTransform>();
+        bgRect.sizeDelta = new Vector2(Screen.width, Screen.height);
+        bgRect.anchoredPosition = Vector2.zero;
+        Image bgImage = background.AddComponent<Image>();
+        bgImage.color = new Color(0, 0, 0, 0.8f); // Semi-transparent black
+
+        // Add a text field to display the deck
+        GameObject textObject = new GameObject("DeckText");
+        textObject.transform.SetParent(panel.transform);
+        RectTransform textRect = textObject.AddComponent<RectTransform>();
+        textRect.sizeDelta = new Vector2(Screen.width - 100, Screen.height - 200);
+        textRect.anchoredPosition = Vector2.zero;
+        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
+        text.fontSize = 24;
+        text.alignment = TextAlignmentOptions.TopLeft;
+        text.text = GetDeckAsString(); // Populate with deck content
+
+        // Add a close button
+        GameObject closeButton = new GameObject("CloseButton");
+        closeButton.transform.SetParent(panel.transform);
+        RectTransform buttonRect = closeButton.AddComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(200, 50);
+        buttonRect.anchoredPosition = new Vector2(0, -Screen.height / 2 + 100);
+        Button button = closeButton.AddComponent<Button>();
+        Image buttonImage = closeButton.AddComponent<Image>();
+        buttonImage.color = Color.white;
+
+        // Add button text
+        GameObject buttonText = new GameObject("ButtonText");
+        buttonText.transform.SetParent(closeButton.transform);
+        TextMeshProUGUI buttonTextComponent = buttonText.AddComponent<TextMeshProUGUI>();
+        buttonTextComponent.text = "Close"; // Set the text to "Close"
+        buttonTextComponent.fontSize = 24;
+        buttonTextComponent.alignment = TextAlignmentOptions.Center;
+        buttonTextComponent.color = Color.black; // Set the text color to black
+        RectTransform buttonTextRect = buttonText.GetComponent<RectTransform>();
+        buttonTextRect.sizeDelta = new Vector2(200, 50);
+        buttonTextRect.anchoredPosition = Vector2.zero;
+
+        // Add close functionality
+        button.onClick.AddListener(() => Destroy(panel));
+    }
+
+    /// <summary>
+    /// Retrieves the entire deck as a formatted string.
+    /// </summary>
+    /// <returns>A string representation of the deck.</returns>
+    private string GetDeckAsString()
+    {
+        if (deckManager == null || deckManager.deck == null)
+        {
+            return "Deck is empty or unavailable.";
+        }
+
+        return string.Join("\n", deckManager.deck.Select(card => $"{card.Rank} of {card.Suit} ({card.Type})"));
     }
 }
