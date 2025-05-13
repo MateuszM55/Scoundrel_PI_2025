@@ -23,6 +23,12 @@ public class CardImageManager : MonoBehaviour
     public Sprite specialMonsterSprite13;
     public Sprite specialMonsterSprite14;
 
+    // Add suit sprites
+    public Sprite clubsSuitSprite;
+    public Sprite spadesSuitSprite;
+    public Sprite diamondsSuitSprite;
+    public Sprite heartsSuitSprite;
+
     /// <summary>
     /// Retrieves the appropriate sprite for a given card.
     /// </summary>
@@ -40,6 +46,21 @@ public class CardImageManager : MonoBehaviour
                 return GetMonsterSprite(card.Rank);
             default:
                 return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns the suit sprite for a given card.
+    /// </summary>
+    public Sprite GetSuitSprite(Card card)
+    {
+        switch (card.Suit)
+        {
+            case "Clubs": return clubsSuitSprite;
+            case "Spades": return spadesSuitSprite;
+            case "Diamonds": return diamondsSuitSprite;
+            case "Hearts": return heartsSuitSprite;
+            default: return null;
         }
     }
 

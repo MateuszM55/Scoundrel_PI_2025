@@ -191,8 +191,8 @@ public class UIManager : MonoBehaviour
                     }
                 }
 
-                // Add or update corner text for the card's value  
-                UpdateCardCornerText(button, card.Rank);
+                // Add or update corner display for the card's value and suit  
+                UpdateCardCornerDisplay(button, card);
 
                 button.onClick.RemoveAllListeners();
 
@@ -215,40 +215,67 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the corner text of a card button to display the card's value in all four corners.
+    /// Updates the corner display of a card button: value as text in top-left and bottom-right, suit as image in top-right and bottom-left.
     /// </summary>
     /// <param name="button">The button representing the card.</param>
-    /// <param name="value">The value of the card to display.</param>
-    private void UpdateCardCornerText(Button button, int value)
+    /// <param name="card">The card to display.</param>
+    private void UpdateCardCornerDisplay(Button button, Card card)
     {
-        // Ensure the button has a RectTransform
         RectTransform buttonRect = button.GetComponent<RectTransform>();
 
-        // Adjust positions to ensure text stays inside the button
         Vector2 topLeftPosition = new Vector2(-buttonRect.rect.width / 2 + 20, buttonRect.rect.height / 2 - 20);
         Vector2 topRightPosition = new Vector2(buttonRect.rect.width / 2 - 20, buttonRect.rect.height / 2 - 20);
         Vector2 bottomLeftPosition = new Vector2(-buttonRect.rect.width / 2 + 20, -buttonRect.rect.height / 2 + 20);
         Vector2 bottomRightPosition = new Vector2(buttonRect.rect.width / 2 - 20, -buttonRect.rect.height / 2 + 20);
 
-        // Create or update the top-left corner text
+        // Top-left: value as text
         TextMeshProUGUI topLeftText = GetOrCreateCornerText(button, "TopLeftText", topLeftPosition);
-        topLeftText.text = value.ToString();
-        topLeftText.color = Color.white; // Set text color to white
+        topLeftText.text = card.Rank.ToString();
+        topLeftText.color = Color.white;
 
-        // Create or update the top-right corner text
-        TextMeshProUGUI topRightText = GetOrCreateCornerText(button, "TopRightText", topRightPosition);
-        topRightText.text = value.ToString();
-        topRightText.color = Color.white; // Set text color to white
-
-        // Create or update the bottom-left corner text
-        TextMeshProUGUI bottomLeftText = GetOrCreateCornerText(button, "BottomLeftText", bottomLeftPosition);
-        bottomLeftText.text = value.ToString();
-        bottomLeftText.color = Color.white; // Set text color to white
-
-        // Create or update the bottom-right corner text
+        // Bottom-right: value as text
         TextMeshProUGUI bottomRightText = GetOrCreateCornerText(button, "BottomRightText", bottomRightPosition);
-        bottomRightText.text = value.ToString();
-        bottomRightText.color = Color.white; // Set text color to white
+        bottomRightText.text = card.Rank.ToString();
+        bottomRightText.color = Color.white;
+
+        // Top-right: suit as image
+        SetOrCreateCornerSuitImage(button, "TopRightSuitImage", topRightPosition, card);
+
+        // Bottom-left: suit as image
+        SetOrCreateCornerSuitImage(button, "BottomLeftSuitImage", bottomLeftPosition, card);
+    }
+
+    /// <summary>
+    /// Creates or updates a suit image in a card button corner.
+    /// </summary>
+    private void SetOrCreateCornerSuitImage(Button button, string name, Vector2 anchoredPosition, Card card)
+    {
+        // Remove any old text object with the same name (from previous implementation)
+        Transform oldText = button.transform.Find(name.Replace("Image", "Text"));
+        if (oldText != null) DestroyImmediate(oldText.gameObject);
+
+        // Find or create the image object
+        Transform existing = button.transform.Find(name);
+        Image img;
+        if (existing != null)
+        {
+            img = existing.GetComponent<Image>();
+        }
+        else
+        {
+            GameObject imgObj = new GameObject(name);
+            imgObj.transform.SetParent(button.transform);
+            RectTransform rect = imgObj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(64, 64); // Double the previous size (was 32,32)
+            rect.anchoredPosition = anchoredPosition;
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            img = imgObj.AddComponent<Image>();
+        }
+        // Set the sprite
+        if (cardImageManager != null)
+            img.sprite = cardImageManager.GetSuitSprite(card);
+        img.color = Color.white;
+        img.enabled = img.sprite != null;
     }
 
     /// <summary>
@@ -279,7 +306,7 @@ public class UIManager : MonoBehaviour
 
         // Add and configure the TextMeshProUGUI component
         TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.fontSize = 42; // Keep the larger font size
+        text.fontSize = 100; // Increased font size to match previous (larger) style
         text.alignment = TextAlignmentOptions.Center;
         text.color = Color.black; // Adjust color as needed
 
@@ -385,9 +412,6 @@ public class UIManager : MonoBehaviour
                 CycleCards();
             }
 
-            // Re-enable running
-            canRun = true;
-
             hasFought = false; // Reset the flag for the next card click    
         }
         else
@@ -407,6 +431,8 @@ public class UIManager : MonoBehaviour
         int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
         if (activeButtons == 1)
         {
+            // Re-enable running
+            canRun = true;
             // Reset the healing potion counter when cards are redrawn
             Debug.Log("[UIManager] Resetting healingPotionCounter during card redraw.");
             deckManager.healingPotionCounter = 0;
@@ -451,7 +477,7 @@ public class UIManager : MonoBehaviour
                 {
                     // Keep the remaining card intact
                     button.gameObject.SetActive(true);
-                    UpdateCardCornerText(button, remainingCard.Rank); // Update all corners
+                    UpdateCardCornerDisplay(button, remainingCard); // Update all corners
 
                     // Update the sprite for the remaining card
                     if (cardImageManager != null)
@@ -474,7 +500,7 @@ public class UIManager : MonoBehaviour
                     // Update button with a new card
                     Card card = newCards[newCardIndex++];
                     button.gameObject.SetActive(true);
-                    UpdateCardCornerText(button, card.Rank); // Update all corners
+                    UpdateCardCornerDisplay(button, card); // Update all corners
 
                     // Update the sprite for the new card
                     if (cardImageManager != null)
@@ -528,6 +554,7 @@ public class UIManager : MonoBehaviour
             if (button.gameObject.activeSelf)
             {
                 int cardRank = int.Parse(button.GetComponentInChildren<TextMeshProUGUI>().text);
+                Debug.Log($"Moving card with rank {cardRank} to the bottom of the deck.");
                 Card card = deckManager.deck.FirstOrDefault(c => c.Rank == cardRank);
                 if (card != null)
                 {
@@ -542,6 +569,7 @@ public class UIManager : MonoBehaviour
         canRun = false;
 
         UpdateInfoText("You ran away and drew new cards.");
+        UpdateRemainingCardsText(); // Update remaining cards text
     }
 
     /// <summary>
