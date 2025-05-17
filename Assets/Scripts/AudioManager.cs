@@ -56,14 +56,17 @@ public class AudioManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            // Play random music on awake, but only if not already playing
+            if (musicSource != null && !musicSource.isPlaying)
+            {
+                PlayRandomMusic();
+            }
         }
         else
         {
             Destroy(gameObject);
+            return;
         }
-
-        // Play random music on awake
-        PlayRandomMusic();
     }
 
     /// <summary>
@@ -71,6 +74,7 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        // Only play a new track if the current one finished and there is a valid musicSource
         if (musicSource != null && !musicSource.isPlaying && musicSource.clip != null)
         {
             PlayRandomMusic();
@@ -86,6 +90,8 @@ public class AudioManager : MonoBehaviour
     {
         if (musicSource != null)
         {
+            // Stop any currently playing music before starting a new one
+            musicSource.Stop();
             musicSource.clip = clip;
             musicSource.volume = volume;
             musicSource.loop = true;
@@ -145,6 +151,12 @@ public class AudioManager : MonoBehaviour
             // Select a random track
             int randomIndex = Random.Range(0, musicTracks.Count);
             AudioClip randomTrack = musicTracks[randomIndex];
+
+            // Stop any currently playing music before starting a new one
+            if (musicSource != null)
+            {
+                musicSource.Stop();
+            }
 
             // Play the selected track
             PlayMusic(randomTrack, volume);

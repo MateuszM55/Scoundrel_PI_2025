@@ -160,7 +160,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      weaklpoion_0: 7789902470636191806
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
