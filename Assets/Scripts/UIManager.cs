@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems; // Add this for EventSystems
 using System.Collections.Generic;
 using System.Linq;
 using TMPro; // Add this for TextMeshPro support
@@ -1201,7 +1202,7 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Displays a full-screen panel with a text field showing the entire deck in order.
+    /// Displays a full-screen panel with a grid showing the entire deck in 4 columns, stretching text to be screen wide.
     /// </summary>
     public void ShowDeckOverview()
     {
@@ -1214,61 +1215,93 @@ public class UIManager : MonoBehaviour
 
         // Add a semi-transparent background
         GameObject background = new GameObject("Background");
-        background.transform.SetParent(panel.transform);
+        background.transform.SetParent(panel.transform, false);
         RectTransform bgRect = background.AddComponent<RectTransform>();
-        bgRect.sizeDelta = new Vector2(Screen.width, Screen.height);
-        bgRect.anchoredPosition = Vector2.zero;
+        bgRect.anchorMin = Vector2.zero;
+        bgRect.anchorMax = Vector2.one;
+        bgRect.offsetMin = Vector2.zero;
+        bgRect.offsetMax = Vector2.zero;
         Image bgImage = background.AddComponent<Image>();
         bgImage.color = new Color(0, 0, 0, 0.8f); // Semi-transparent black
 
-        // Add a text field to display the deck
-        GameObject textObject = new GameObject("DeckText");
-        textObject.transform.SetParent(panel.transform);
-        RectTransform textRect = textObject.AddComponent<RectTransform>();
-        textRect.sizeDelta = new Vector2(Screen.width - 100, Screen.height - 200);
-        textRect.anchoredPosition = Vector2.zero;
-        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.fontSize = 24;
-        text.alignment = TextAlignmentOptions.TopLeft;
-        text.text = GetDeckAsString(); // Populate with deck content
+        // Add a container for the grid
+        GameObject gridObject = new GameObject("DeckGrid");
+        gridObject.transform.SetParent(panel.transform, false);
+        RectTransform gridRect = gridObject.AddComponent<RectTransform>();
+        gridRect.anchorMin = new Vector2(0, 0.5f);
+        gridRect.anchorMax = new Vector2(1, 0.5f);
+        gridRect.pivot = new Vector2(0.5f, 0.5f);
+        gridRect.sizeDelta = new Vector2(0, Screen.height - 200);
+        gridRect.anchoredPosition = Vector2.zero;
+
+        GridLayoutGroup grid = gridObject.AddComponent<GridLayoutGroup>();
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = 4;
+        grid.cellSize = new Vector2((Screen.width - 100) / 4f, 80);
+        grid.spacing = new Vector2(10, 10);
+        grid.childAlignment = TextAnchor.UpperCenter;
+        grid.padding = new RectOffset(10, 10, 10, 10);
+
+        // Add each card as a cell in the grid
+        if (deckManager != null && deckManager.deck != null)
+        {
+            foreach (var card in deckManager.deck)
+            {
+                GameObject cardCell = new GameObject("CardCell");
+                cardCell.transform.SetParent(gridObject.transform, false);
+
+                // Stretch the card cell horizontally
+                RectTransform cellRect = cardCell.AddComponent<RectTransform>();
+                cellRect.anchorMin = new Vector2(0, 0);
+                cellRect.anchorMax = new Vector2(1, 1);
+                cellRect.pivot = new Vector2(0.5f, 0.5f);
+                cellRect.sizeDelta = Vector2.zero;
+
+                TextMeshProUGUI cardText = cardCell.AddComponent<TextMeshProUGUI>();
+                cardText.text = $"{card.Rank} of {card.Suit} ({card.Type})";
+                cardText.fontSize = 50;
+                cardText.alignment = TextAlignmentOptions.Center;
+                cardText.color = Color.white;
+                cardText.enableWordWrapping = false;
+                cardText.enableAutoSizing = true;
+                cardText.rectTransform.anchorMin = new Vector2(0, 0);
+                cardText.rectTransform.anchorMax = new Vector2(1, 1);
+                cardText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                cardText.rectTransform.offsetMin = Vector2.zero;
+                cardText.rectTransform.offsetMax = Vector2.zero;
+            }
+        }
 
         // Add a close button
         GameObject closeButton = new GameObject("CloseButton");
-        closeButton.transform.SetParent(panel.transform);
+        closeButton.transform.SetParent(panel.transform, false);
         RectTransform buttonRect = closeButton.AddComponent<RectTransform>();
         buttonRect.sizeDelta = new Vector2(200, 50);
-        buttonRect.anchoredPosition = new Vector2(0, -Screen.height / 2 + 100);
+        buttonRect.anchorMin = new Vector2(0.5f, 0);
+        buttonRect.anchorMax = new Vector2(0.5f, 0);
+        buttonRect.pivot = new Vector2(0.5f, 0.5f);
+        buttonRect.anchoredPosition = new Vector2(0, 60);
+
         Button button = closeButton.AddComponent<Button>();
         Image buttonImage = closeButton.AddComponent<Image>();
         buttonImage.color = Color.white;
 
         // Add button text
         GameObject buttonText = new GameObject("ButtonText");
-        buttonText.transform.SetParent(closeButton.transform);
+        buttonText.transform.SetParent(closeButton.transform, false);
         TextMeshProUGUI buttonTextComponent = buttonText.AddComponent<TextMeshProUGUI>();
-        buttonTextComponent.text = "Close"; // Set the text to "Close"
+        buttonTextComponent.text = "Close";
         buttonTextComponent.fontSize = 24;
         buttonTextComponent.alignment = TextAlignmentOptions.Center;
-        buttonTextComponent.color = Color.black; // Set the text color to black
+        buttonTextComponent.color = Color.black;
         RectTransform buttonTextRect = buttonText.GetComponent<RectTransform>();
         buttonTextRect.sizeDelta = new Vector2(200, 50);
+        buttonTextRect.anchorMin = new Vector2(0.5f, 0.5f);
+        buttonTextRect.anchorMax = new Vector2(0.5f, 0.5f);
+        buttonTextRect.pivot = new Vector2(0.5f, 0.5f);
         buttonTextRect.anchoredPosition = Vector2.zero;
 
         // Add close functionality
         button.onClick.AddListener(() => Destroy(panel));
-    }
-
-    /// <summary>
-    /// Retrieves the entire deck as a formatted string.
-    /// </summary>
-    /// <returns>A string representation of the deck.</returns>
-    private string GetDeckAsString()
-    {
-        if (deckManager == null || deckManager.deck == null)
-        {
-            return "Deck is empty or unavailable.";
-        }
-
-        return string.Join("\n", deckManager.deck.Select(card => $"{card.Rank} of {card.Suit} ({card.Type})"));
     }
 }
