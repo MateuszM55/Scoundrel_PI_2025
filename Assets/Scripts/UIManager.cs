@@ -541,6 +541,15 @@ public class UIManager : MonoBehaviour
             return;
         }
 
+        // Check if there are any cards left in the deck or on the table
+        int activeButtons = cardButtons.Count(button => button.gameObject.activeSelf);
+        int deckCount = deckManager.GetRemainingCardsCount();
+        if (activeButtons == 0 && deckCount == 0)
+        {
+            UpdateInfoText("No cards left to run from!");
+            return;
+        }
+
         // Play the running sound effect
         if (audioManager != null)
         {
@@ -548,28 +557,64 @@ public class UIManager : MonoBehaviour
             audioManager.PlaySFX(audioManager.runSound);
         }
 
-        // Move all current cards to the bottom of the deck
+        // Move all current cards to the bottom of the deck (preserve their Card objects)
+        List<Card> cardsToMove = new List<Card>();
         foreach (Button button in cardButtons)
         {
-            if (button.gameObject.activeSelf)
+            if (button.gameObject.activeSelf && buttonCardMap.TryGetValue(button, out Card card))
             {
-                int cardRank = int.Parse(button.GetComponentInChildren<TextMeshProUGUI>().text);
-                Debug.Log($"Moving card with rank {cardRank} to the bottom of the deck.");
-                Card card = deckManager.deck.FirstOrDefault(c => c.Rank == cardRank);
-                if (card != null)
-                {
-                    deckManager.deck.Add(card); // Add to the bottom of the deck
-                }
+                cardsToMove.Add(card);
             }
         }
+        // Remove these cards from the deck if they are still present (avoid duplicates)
+        foreach (var card in cardsToMove)
+        {
+            deckManager.RemoveCardFromDeck(card);
+            deckManager.deck.Add(card); // Add to the bottom of the deck
+        }
 
-        InitializeCardButtons();
+        // If there are fewer cards in the deck than cardButtons, only draw as many as possible
+        int cardsToDraw = Mathf.Min(cardButtons.Count, deckManager.deck.Count);
+        List<Card> newCards = deckManager.deck.Take(cardsToDraw).ToList();
+        deckManager.deck = deckManager.deck.Skip(cardsToDraw).ToList();
+
+        buttonCardMap.Clear();
+        for (int i = 0; i < cardButtons.Count; i++)
+        {
+            if (i < newCards.Count)
+            {
+                Card card = newCards[i];
+                Button button = cardButtons[i];
+                button.gameObject.SetActive(true);
+
+                // Assign the appropriate image to the card button
+                if (cardImageManager != null)
+                {
+                    Sprite cardSprite = cardImageManager.GetCardSprite(card);
+                    if (cardSprite != null)
+                    {
+                        button.GetComponent<Image>().sprite = cardSprite;
+                    }
+                }
+
+                UpdateCardCornerDisplay(button, card);
+
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => OnCardClicked(button));
+                buttonCardMap[button] = card;
+            }
+            else
+            {
+                cardButtons[i].gameObject.SetActive(false);
+            }
+        }
 
         // Disable running until another action is taken
         canRun = false;
 
         UpdateInfoText("You ran away and drew new cards.");
         UpdateRemainingCardsText(); // Update remaining cards text
+        UpdateStatsDisplay();
     }
 
     /// <summary>

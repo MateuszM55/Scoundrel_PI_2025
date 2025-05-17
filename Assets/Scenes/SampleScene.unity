@@ -1764,7 +1764,7 @@ MonoBehaviour:
   normalPotionSprite: {fileID: 731806605160617493, guid: caa13e76ad9e924428832030c2b7c43b, type: 3}
   powerfulPotionSprite: {fileID: 3078277045489631947, guid: 8f6ca204dac4623478a2787cde47087e, type: 3}
   weakWeaponSprite: {fileID: 84411731139506115, guid: ba5d462b8a92d1243a610d09c3713227, type: 3}
-  normalWeaponSprite: {fileID: 3624362911992127075, guid: b2318e6e3cd3c5040bc1b7a0b0a11d58, type: 3}
+  normalWeaponSprite: {fileID: -2422426066292186707, guid: 69364d51de8df3f4180191e959c74c44, type: 3}
   powerfulWeaponSprite: {fileID: 6014182160910992587, guid: e1a2c86f14b616e42979453deb241e2e, type: 3}
   weakMonsterSprite: {fileID: 6302361804267840369, guid: 6eaaac9520eab024d931c8e5f9b9cbd8, type: 3}
   normalMonsterSprite: {fileID: -2204684446497510965, guid: a05c33970d92d1a4d8cd7c774adc5a3e, type: 3}
@@ -1773,6 +1773,10 @@ MonoBehaviour:
   specialMonsterSprite12: {fileID: 6851498383279292439, guid: 3a47e5f36212e0b439bdd577a8b0282e, type: 3}
   specialMonsterSprite13: {fileID: -1724822148711148119, guid: d1635fcb3c383054d9344787fcf9d586, type: 3}
   specialMonsterSprite14: {fileID: 8469279637741007179, guid: e6a3d1000c3a29743a6d28712a1251fc, type: 3}
+  clubsSuitSprite: {fileID: 1312888183495049454, guid: 8b8ef0808b582aa43aa157020d638304, type: 3}
+  spadesSuitSprite: {fileID: -5201402050435955657, guid: 006e7df69cf29a64dafbde47c0f9e335, type: 3}
+  diamondsSuitSprite: {fileID: 3239788980064752279, guid: 1ac32a60c2ac4cf44bb303d932f8bcaf, type: 3}
+  heartsSuitSprite: {fileID: 3431852193575524028, guid: 815dc7b8a302d144896dfa74bc02a90b, type: 3}
 --- !u!1 &584617006
 GameObject:
   m_ObjectHideFlags: 0
