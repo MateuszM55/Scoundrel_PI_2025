@@ -381,6 +381,12 @@ public class UIManager : MonoBehaviour
                     }
                     deckManager.healingPotionCounter++;
                     deckManager.LogHealingPotionCounter(); // Log the updated counter value
+
+                    // Play healing potion sound
+                    if (AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlayCardTypeSound(CardType.HealingPotion);
+                    }
                     break;
 
                 case CardType.Weapon:
@@ -393,6 +399,12 @@ public class UIManager : MonoBehaviour
 
                     // Update the weapon image
                     UpdateWeaponImage(card); // Ensure the image updates when a weapon card is clicked
+
+                    // Play weapon sound
+                    if (AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlayCardTypeSound(CardType.Weapon);
+                    }
                     break;
 
                 case CardType.Monster:
