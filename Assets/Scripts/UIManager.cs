@@ -326,7 +326,6 @@ public class UIManager : MonoBehaviour
         lastSlainMonsterText.text = gameManager.weapon != null
             ? $"Last Slain Monster: {gameManager.weapon.lastSlainMonster}"
             : "Last Slain Monster: None";
-        highScoreText.text = $"High Score: {gameManager.highScore}"; // Display the high score
     }
 
     /// <summary>
@@ -337,6 +336,22 @@ public class UIManager : MonoBehaviour
     {
         infoText.text = ""; // Clear the existing text
         infoText.text += message + "\n"; // Append the new message
+    }
+
+    /// <summary>
+    /// Saves the current game state.
+    /// </summary>
+    private void SaveGameState()
+    {
+        GameState gameState = new GameState
+        {
+            healthPoints = gameManager.healthPoints,
+            weapon = gameManager.weapon,
+            deck = deckManager.deck,
+            currentCardButtons = buttonCardMap.Values.ToList(),
+            canRun = canRun
+        };
+        SaveManager.SaveGame(gameState);
     }
 
     /// <summary>
@@ -426,6 +441,9 @@ public class UIManager : MonoBehaviour
             }
 
             hasFought = false; // Reset the flag for the next card click    
+
+            // Save the game state after card click
+            SaveGameState();
         }
         else
         {
@@ -628,6 +646,9 @@ public class UIManager : MonoBehaviour
         UpdateInfoText("You ran away and drew new cards.");
         UpdateRemainingCardsText(); // Update remaining cards text
         UpdateStatsDisplay();
+
+        // Save the game state after running
+        SaveGameState();
     }
 
     /// <summary>
@@ -707,6 +728,7 @@ public class UIManager : MonoBehaviour
                         CheckWinCondition();
                     }
                 );
+                SaveGameState(); // Save after fight
                 return; // Exit the method after showing the popup
             }
             else
@@ -759,6 +781,9 @@ public class UIManager : MonoBehaviour
         }
 
         CycleCards(); // Cycle cards after the fight only when no popup was shown
+
+        // Save the game state after fight
+        SaveGameState();
     }
 
     /// <summary>
@@ -1315,5 +1340,94 @@ public class UIManager : MonoBehaviour
 
         // Add close functionality
         button.onClick.AddListener(() => Destroy(panel));
+    }
+
+    /// <summary>
+    /// Restores the state of card buttons from a saved game state.
+    /// </summary>
+    /// <param name="savedCards">The list of cards to restore to the buttons.</param>
+    public void RestoreCardButtons(List<Card> savedCards)
+    {
+        if (savedCards == null)
+        {
+            Debug.LogError("[UIManager] RestoreCardButtons called with null savedCards.");
+            return;
+        }
+
+        if (cardButtons == null)
+        {
+            Debug.LogError("[UIManager] cardButtons is null. Ensure it is properly initialized.");
+            return;
+        }
+
+        buttonCardMap.Clear(); // Clear the existing map
+
+        for (int i = 0; i < cardButtons.Count; i++)
+        {
+            if (i < savedCards.Count)
+            {
+                Card card = savedCards[i];
+                Button button = cardButtons[i];
+                if (button == null)
+                {
+                    Debug.LogError($"[UIManager] Button at index {i} is null.");
+                    continue;
+                }
+
+                button.gameObject.SetActive(true);
+
+                // Update the button's image and corner display
+                if (cardImageManager != null)
+                {
+                    Sprite cardSprite = cardImageManager.GetCardSprite(card);
+                    if (cardSprite != null)
+                    {
+                        button.GetComponent<Image>().sprite = cardSprite;
+                    }
+                }
+                UpdateCardCornerDisplay(button, card);
+
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => OnCardClicked(button));
+
+                // Map the button to the card
+                buttonCardMap[button] = card;
+            }
+            else
+            {
+                // Hide extra buttons
+                if (cardButtons[i] != null)
+                {
+                    cardButtons[i].gameObject.SetActive(false);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets the canRun flag based on the saved game state.
+    /// </summary>
+    /// <param name="value">The value to set for the canRun flag.</param>
+    public void SetCanRun(bool value)
+    {
+        canRun = value;
+    }
+
+    /// <summary>
+    /// Retrieves the cards currently displayed on the card buttons.
+    /// </summary>
+    /// <returns>A list of cards currently displayed on the card buttons.</returns>
+    public List<Card> GetCurrentCardButtons()
+    {
+        return buttonCardMap.Values.ToList();
+    }
+
+    /// <summary>
+    /// Retrieves the current value of the canRun flag.
+    /// </summary>
+    /// <returns>The current value of the canRun flag.</returns>
+    public bool GetCanRun()
+    {
+        return canRun;
     }
 }

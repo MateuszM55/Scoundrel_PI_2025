@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// Manages the core game logic, including player stats, weapon, and high score.
@@ -16,9 +17,14 @@ public class GameManager : MonoBehaviour
     public Weapon weapon;
 
     /// <summary>
-    /// The highest score achieved by the player.
+    /// Reference to the UIManager instance.
     /// </summary>
-    public int highScore;
+    public UIManager uiManager;
+
+    /// <summary>
+    /// Reference to the DeckManager instance.
+    /// </summary>
+    public DeckManager deckManager;
 
     /// <summary>
     /// Initializes default values for the game manager at the start of the game.
@@ -27,7 +33,16 @@ public class GameManager : MonoBehaviour
     {
         healthPoints = 20; // Example default value
         weapon = new Weapon { strength = 0, lastSlainMonster = 0 }; // Example default weapon
-        highScore = 0; // Initialize high score
+
+        // Initialize references to UIManager and DeckManager
+        if (uiManager == null)
+        {
+            uiManager = FindObjectOfType<UIManager>();
+        }
+        if (deckManager == null)
+        {
+            deckManager = FindObjectOfType<DeckManager>();
+        }
     }
 
     /// <summary>
@@ -51,7 +66,9 @@ public class GameManager : MonoBehaviour
         {
             healthPoints = healthPoints,
             weapon = weapon != null ? new Weapon { strength = weapon.strength, lastSlainMonster = weapon.lastSlainMonster } : null,
-            highScore = highScore // Include high score in the game state
+            deck = deckManager != null ? new List<Card>(deckManager.deck) : new List<Card>(), // Save the current deck
+            currentCardButtons = uiManager != null ? new List<Card>(uiManager.GetCurrentCardButtons()) : new List<Card>(), // Save current card buttons
+            canRun = uiManager != null && uiManager.GetCanRun() // Save the canRun flag
         };
     }               
 
@@ -61,20 +78,40 @@ public class GameManager : MonoBehaviour
     /// <param name="gameState">The saved game state to load.</param>
     public void LoadGameState(GameState gameState)
     {
+        if (gameState == null)
+        {
+            Debug.LogError("[GameManager] LoadGameState called with null gameState.");
+            return;
+        }
+
         healthPoints = gameState.healthPoints;
         weapon = gameState.weapon != null ? new Weapon { strength = gameState.weapon.strength, lastSlainMonster = gameState.weapon.lastSlainMonster } : null;
-        highScore = gameState.highScore; // Restore high score
-    }
 
-    /// <summary>
-    /// Updates the high score if the new score is greater than the current high score.
-    /// </summary>
-    /// <param name="newScore">The new score to compare against the current high score.</param>
-    public void UpdateHighScore(int newScore)
-    {
-        if (newScore > highScore)
+        if (deckManager != null)
         {
-            highScore = newScore;
+            deckManager.deck = gameState.deck; // Restore deck
+        }
+        else
+        {
+            Debug.LogError("[GameManager] deckManager is null. Ensure it is properly initialized.");
+        }
+
+        if (uiManager != null)
+        {
+            if (gameState.currentCardButtons != null)
+            {
+                uiManager.RestoreCardButtons(gameState.currentCardButtons); // Restore card buttons
+            }
+            else
+            {
+                Debug.LogError("[GameManager] currentCardButtons in gameState is null.");
+            }
+
+            uiManager.SetCanRun(gameState.canRun); // Restore canRun flag
+        }
+        else
+        {
+            Debug.LogError("[GameManager] uiManager is null. Ensure it is properly initialized.");
         }
     }
 }
